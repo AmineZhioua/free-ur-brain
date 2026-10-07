@@ -1,35 +1,53 @@
 -- Merging decision tree log ---
 manifest
-ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:1:1-18:12
-INJECTED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:1:1-18:12
+ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:1:1-31:12
+INJECTED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:1:1-31:12
 	package
 		INJECTED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml
 	xmlns:android
 		ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:1:11-69
+queries
+ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:2:5-13:15
+intent#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
+ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:4:9-7:18
+action#android.intent.action.MAIN
+ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:5:15-67
+	android:name
+		ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:5:23-64
+category#android.intent.category.LAUNCHER
+ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:6:15-75
+	android:name
+		ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:6:25-72
+intent#action:name:android.intent.action.MAIN+category:name:android.intent.category.HOME
+ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:9:9-12:18
+category#android.intent.category.HOME
+ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:11:11-67
+	android:name
+		ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:11:21-64
 application
-ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:2:5-17:19
+ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:15:5-30:19
 service#expo.modules.appblocker.BlockerService
-ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:3:9-16:19
+ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:16:9-29:19
 	android:label
-		ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:6:11-60
+		ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:19:13-62
 	android:exported
-		ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:5:11-34
+		ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:18:13-36
 	android:permission
-		ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:7:11-77
+		ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:20:13-79
 	android:name
-		ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:4:11-64
+		ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:17:13-66
 intent-filter#action:name:android.accessibilityservice.AccessibilityService
-ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:9:13-11:29
+ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:22:13-24:29
 action#android.accessibilityservice.AccessibilityService
-ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:10:17-92
+ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:23:17-92
 	android:name
-		ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:10:25-89
+		ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:23:25-89
 meta-data#android.accessibilityservice
-ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:12:13-15:15
+ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:25:13-28:15
 	android:resource
-		ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:14:17-73
+		ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:27:17-73
 	android:name
-		ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:13:17-60
+		ADDED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml:26:17-60
 uses-sdk
 INJECTED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from /home/h0wzer/Workspace/FreeUrBrain/modules/app-blocker/android/src/main/AndroidManifest.xml

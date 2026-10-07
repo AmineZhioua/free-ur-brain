@@ -3,10 +3,26 @@ package expo.modules.appblocker
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.drawable.Drawable
+import android.os.Build
 import android.provider.Settings
+import android.util.Base64
 import expo.modules.kotlin.exception.Exceptions
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
+import expo.modules.kotlin.records.Field
+import expo.modules.kotlin.records.Record
+import java.io.ByteArrayOutputStream
+
+class InstalledAppRecord(
+    @Field val packageName: String = "",
+    @Field val label: String = "",
+    @Field val icon: String = "",
+) : Record
 
 class AppBlockerModule : Module() {
 
@@ -25,6 +41,10 @@ class AppBlockerModule : Module() {
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)
         }
+
+        AsyncFunction("getInstalledApps") {
+            getInstalledApps()
+        }
     }
 
     private fun isServiceEnabled(): Boolean {
@@ -39,5 +59,56 @@ class AppBlockerModule : Module() {
             .split(':')
             .mapNotNull { ComponentName.unflattenFromString(it) }
             .any { it == expected }
+    }
+
+    private fun getInstalledApps(): List<InstalledAppRecord> {
+        val pm = context.packageManager
+
+        val launcherIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
+        val homeIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+
+        // Never offer: ourselves, Settings, or any home launcher.
+        val excluded = buildSet {
+            add(context.packageName)
+            add("com.android.settings")
+            pm.queryActivities(homeIntent).forEach { add(it.activityInfo.packageName) }
+        }
+
+        return pm.queryActivities(launcherIntent)
+            .filter { it.activityInfo.packageName !in excluded }
+            .distinctBy { it.activityInfo.packageName }
+            .map { info ->
+                InstalledAppRecord(
+                    packageName = info.activityInfo.packageName,
+                    label = info.loadLabel(pm).toString(),
+                    icon = info.loadIcon(pm).toBase64Png(ICON_SIZE_PX),
+                )
+            }
+            .sortedBy { it.label.lowercase() }
+    }
+
+    private fun PackageManager.queryActivities(intent: Intent): List<ResolveInfo> =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            queryIntentActivities(intent, PackageManager.ResolveInfoFlags.of(0))
+        } else {
+            @Suppress("DEPRECATION")
+            queryIntentActivities(intent, 0)
+        }
+
+    private fun Drawable.toBase64Png(size: Int): String {
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        setBounds(0, 0, size, size)
+        draw(canvas)
+
+        val out = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+        bitmap.recycle()
+
+        return "data:image/png;base64," + Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)
+    }
+
+    private companion object {
+        const val ICON_SIZE_PX = 96
     }
 }

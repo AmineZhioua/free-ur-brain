@@ -4,6 +4,22 @@
 
     <uses-sdk android:minSdkVersion="24" />
 
+    <queries>
+
+        <!-- Apps shown in the launcher (what we let the user block). -->
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+        <!-- Home launchers, so we can exclude them from the list. -->
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+
+            <category android:name="android.intent.category.HOME" />
+        </intent>
+    </queries>
+
     <application>
         <service
             android:name="expo.modules.appblocker.BlockerService"
