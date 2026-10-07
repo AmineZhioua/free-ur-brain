@@ -1,0 +1,5 @@
+R_DEF: Internal format may change without notice
+local
+string freeurbrain_service_description
+string freeurbrain_service_label
+xml freeurbrain_accessibility_config

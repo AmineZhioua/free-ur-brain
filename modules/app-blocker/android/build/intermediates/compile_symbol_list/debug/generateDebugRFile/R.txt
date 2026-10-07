@@ -1,0 +1,3 @@
+int string freeurbrain_service_description 0x0
+int string freeurbrain_service_label 0x0
+int xml freeurbrain_accessibility_config 0x0

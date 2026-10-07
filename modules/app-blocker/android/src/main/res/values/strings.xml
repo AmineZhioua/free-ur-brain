@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="freeurbrain_service_label">FreeUrBrain</string>
+    <string name="freeurbrain_service_description">FreeUrBrain uses this permission only to detect which app is in the foreground, so it can block the apps you chose during a commitment. It does not read your screen content, and no data leaves your device.</string>
+</resources>
