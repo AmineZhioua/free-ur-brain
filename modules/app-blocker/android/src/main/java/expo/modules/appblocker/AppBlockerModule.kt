@@ -47,36 +47,54 @@ class AppBlockerModule : Module() {
         }
     }
 
+    
+    /*
+        Function to determine whether the FreeUrBrain's accessibility service
+        is enabled or not.
+    */
     private fun isServiceEnabled(): Boolean {
+        /* 
+            Get the list of accessibility-enabled services. If Accessibility setting isn't available
+            then we return FALSE 
+        */
         val enabled = Settings.Secure.getString(
             context.contentResolver,
             Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
         ) ?: return false
 
+        // our BlockerService's component name
         val expected = ComponentName(context, BlockerService::class.java)
 
+        // Check if any of these services is the BlockerService. This returns TRUE or FALSE
         return enabled
             .split(':')
             .mapNotNull { ComponentName.unflattenFromString(it) }
             .any { it == expected }
     }
 
+
+    /*
+        Function to return a list of launchable apps that FreeUrBrain can display
+        in its selection screen. Both "settings" & "FreeUrBrain" are excluded from the list.
+    */
     private fun getInstalledApps(): List<InstalledAppRecord> {
+        // PackageManager provides info about installed packages
         val pm = context.packageManager
 
+        // Common way to discover apps on user's device
         val launcherIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
         val homeIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
 
         // Never offer: ourselves, Settings, or any home launcher.
         val excluded = buildSet {
             add(context.packageName)
-            add("com.android.settings")
+            add("com.android.settings") // Hard-coded, this may vary across Android versions & device manufacturers
             pm.queryActivities(homeIntent).forEach { add(it.activityInfo.packageName) }
         }
 
-        return pm.queryActivities(launcherIntent)
-            .filter { it.activityInfo.packageName !in excluded }
-            .distinctBy { it.activityInfo.packageName }
+        return pm.queryActivities(launcherIntent) // This asks Android's package manager for activities that match the launcher intent.
+            .filter { it.activityInfo.packageName !in excluded } // exclude unwanted packages e.g: Settings
+            .distinctBy { it.activityInfo.packageName } // deduplication because an app can expose more than one launcher activity
             .map { info ->
                 InstalledAppRecord(
                     packageName = info.activityInfo.packageName,
@@ -84,9 +102,13 @@ class AppBlockerModule : Module() {
                     icon = info.loadIcon(pm).toBase64Png(ICON_SIZE_PX),
                 )
             }
-            .sortedBy { it.label.lowercase() }
+            .sortedBy { it.label.lowercase() } // sort the apps alphabetically
     }
 
+
+    /*
+        Call the appropriate version of queryIntentActivities API
+    */
     private fun PackageManager.queryActivities(intent: Intent): List<ResolveInfo> =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             queryIntentActivities(intent, PackageManager.ResolveInfoFlags.of(0))
@@ -95,6 +117,7 @@ class AppBlockerModule : Module() {
             queryIntentActivities(intent, 0)
         }
 
+        
     private fun Drawable.toBase64Png(size: Int): String {
         val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -108,6 +131,7 @@ class AppBlockerModule : Module() {
         return "data:image/png;base64," + Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)
     }
 
+    
     private companion object {
         const val ICON_SIZE_PX = 96
     }

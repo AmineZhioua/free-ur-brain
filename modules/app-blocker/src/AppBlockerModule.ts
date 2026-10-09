@@ -1,5 +1,9 @@
 import { requireNativeModule } from 'expo';
 
+/* 
+  This file represents the interface between React Native and our Android native modules (AppBlocker), it tells
+  TypeScript how to call the native functions we've created.
+*/
 export interface NativeInstalledApp {
   packageName: string;
   label: string;
