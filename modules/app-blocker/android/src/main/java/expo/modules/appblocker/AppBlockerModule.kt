@@ -29,9 +29,10 @@ class AppBlockerModule : Module() {
     private val context: Context
         get() = appContext.reactContext ?: throw Exceptions.ReactContextLost()
 
-    override fun definition() = ModuleDefinition {
-        Name("AppBlocker")
+    private val prefs
+        get() = Prefs.get(context)
 
+    override fun definition() = ModuleDefinition {
         AsyncFunction("isPermissionGranted") {
             isServiceEnabled()
         }
@@ -44,6 +45,22 @@ class AppBlockerModule : Module() {
 
         AsyncFunction("getInstalledApps") {
             getInstalledApps()
+        }
+
+        // --- Local key-value store (shared with BlockerService) ---
+        AsyncFunction("storageGetItem") { key: String ->
+            prefs.getString(key, null)
+        }
+
+        AsyncFunction("storageSetItem") { key: String, value: String ->
+            // commit() = written to disk before we return.
+            prefs.edit().putString(key, value).commit()
+            Unit
+        }
+
+        AsyncFunction("storageRemoveItem") { key: String ->
+            prefs.edit().remove(key).commit()
+            Unit
         }
     }
 

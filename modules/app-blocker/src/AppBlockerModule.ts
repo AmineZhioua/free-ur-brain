@@ -15,6 +15,10 @@ interface AppBlockerNativeModule {
   isPermissionGranted(): Promise<boolean>;
   requestPermission(): Promise<void>;
   getInstalledApps(): Promise<NativeInstalledApp[]>;
+
+  storageGetItem(key: string): Promise<string | null>;
+  storageSetItem(key: string, value: string): Promise<void>;
+  storageRemoveItem(key: string): Promise<void>;
 }
 
-export default requireNativeModule<AppBlockerNativeModule>('AppBlocker');
+export default requireNativeModule<AppBlockerNativeModule>('AppBlockerModule');

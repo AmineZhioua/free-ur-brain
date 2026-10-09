@@ -1,20 +1,42 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { InstalledApp } from '@/core/models/InstalledApp';
+import type { InstalledApp } from '@/core/models/InstalledApp';
 import { AppBlocker } from '@/native/AppBlocker';
+import { loadSelectedPackages, saveSelectedPackages } from '@/core/selection/selection';
 import { AppListItem } from '@/components/AppListItem';
+
 
 export default function AppsScreen() {
   const router = useRouter();
   const [apps, setApps] = useState<InstalledApp[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    AppBlocker.getInstalledApps()
-      .then(setApps)
-      .catch((e) => setError(String(e?.message ?? e)));
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const [installed, saved] = await Promise.all([
+          AppBlocker.getInstalledApps(),
+          loadSelectedPackages(),
+        ]);
+        if (cancelled) return;
+
+        // Drop saved packages that are no longer installed.
+        const installedSet = new Set(installed.map((a) => a.packageName));
+        setApps(installed);
+        setSelected(new Set(saved.filter((p) => installedSet.has(p))));
+      } catch (e: any) {
+        if (!cancelled) setError(String(e?.message ?? e));
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const toggle = useCallback((packageName: string) => {
@@ -26,13 +48,24 @@ export default function AppsScreen() {
     });
   }, []);
 
-  const canContinue = selected.size > 0;
+  const onContinue = async () => {
+    setSaving(true);
+    try {
+      await saveSelectedPackages(Array.from(selected));
+      router.back();
+    } catch (e: any) {
+      setError(String(e?.message ?? e));
+      setSaving(false);
+    }
+  };
+
+  const canContinue = selected.size > 0 && !saving;
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Select apps to block</Text>
 
-      {error && <Text style={styles.error}>Couldn't load apps: {error}</Text>}
+      {error && <Text style={styles.error}>Something went wrong: {error}</Text>}
 
       {!apps && !error && <ActivityIndicator style={styles.loading} />}
 
@@ -55,10 +88,10 @@ export default function AppsScreen() {
       <Pressable
         style={[styles.button, !canContinue && styles.buttonDisabled]}
         disabled={!canContinue}
-        onPress={() => router.back()}
+        onPress={onContinue}
       >
         <Text style={styles.buttonText}>
-          {canContinue ? `Continue (${selected.size} selected)` : 'Select at least one app'}
+          {selected.size > 0 ? `Continue (${selected.size} selected)` : 'Select at least one app'}
         </Text>
       </Pressable>
     </View>
