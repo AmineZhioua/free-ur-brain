@@ -2,7 +2,7 @@ import { NativeStore } from '../../native/NativeStore';
 
 export const StorageKeys = {
   selectedPackages: 'selected_packages',
-  // commitment: 'commitment'
+  commitment: 'commitment'
 } as const;
 
 export async function getJson<T>(key: string): Promise<T | null> {

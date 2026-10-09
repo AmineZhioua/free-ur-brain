@@ -5,6 +5,7 @@ import type { InstalledApp } from '@/core/models/InstalledApp';
 import { AppBlocker } from '@/native/AppBlocker';
 import { loadSelectedPackages, saveSelectedPackages } from '@/core/selection/selection';
 import { AppListItem } from '@/components/AppListItem';
+import { loadCommitment } from '@/core/commitment/CommitmentManager';
 
 
 export default function AppsScreen() {
@@ -19,13 +20,19 @@ export default function AppsScreen() {
 
     (async () => {
       try {
-        const [installed, saved] = await Promise.all([
+        const [installed, saved, commitment] = await Promise.all([
           AppBlocker.getInstalledApps(),
           loadSelectedPackages(),
+          loadCommitment(),
         ]);
         if (cancelled) return;
 
-        // Drop saved packages that are no longer installed.
+        // The app list cannot be edited while a commitment exists.
+        if (commitment) {
+          router.replace('/commitment');
+          return;
+        }
+
         const installedSet = new Set(installed.map((a) => a.packageName));
         setApps(installed);
         setSelected(new Set(saved.filter((p) => installedSet.has(p))));
@@ -37,7 +44,7 @@ export default function AppsScreen() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [router]);
 
   const toggle = useCallback((packageName: string) => {
     setSelected((prev) => {
@@ -47,6 +54,8 @@ export default function AppsScreen() {
       return next;
     });
   }, []);
+
+  const clearAll = useCallback(() => setSelected(new Set()), []);
 
   const onContinue = async () => {
     setSaving(true);
@@ -59,11 +68,16 @@ export default function AppsScreen() {
     }
   };
 
-  const canContinue = selected.size > 0 && !saving;
-
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Select apps to block</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>Select apps to block</Text>
+        {selected.size > 0 && (
+          <Pressable onPress={clearAll} hitSlop={8} accessibilityRole="button">
+            <Text style={styles.clear}>Clear all</Text>
+          </Pressable>
+        )}
+      </View>
 
       {error && <Text style={styles.error}>Something went wrong: {error}</Text>}
 
@@ -86,12 +100,12 @@ export default function AppsScreen() {
       )}
 
       <Pressable
-        style={[styles.button, !canContinue && styles.buttonDisabled]}
-        disabled={!canContinue}
+        style={[styles.button, (saving || !apps) && styles.buttonDisabled]}
+        disabled={saving || !apps}
         onPress={onContinue}
       >
         <Text style={styles.buttonText}>
-          {selected.size > 0 ? `Continue (${selected.size} selected)` : 'Select at least one app'}
+          {selected.size > 0 ? `Continue (${selected.size} selected)` : 'Continue with no apps'}
         </Text>
       </Pressable>
     </View>
@@ -100,7 +114,9 @@ export default function AppsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, paddingHorizontal: 24, paddingTop: 56, paddingBottom: 24, gap: 12 },
-  title: { fontSize: 24, fontWeight: '700', color: '#1A1A1A' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  title: { fontSize: 24, fontWeight: '700', color: '#1A1A1A', flexShrink: 1 },
+  clear: { fontSize: 16, color: '#B00020', fontWeight: '600' },
   list: { flex: 1 },
   loading: { marginTop: 32 },
   error: { color: '#B00020' },
