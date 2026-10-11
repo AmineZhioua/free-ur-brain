@@ -22,6 +22,8 @@ interface AppBlockerNativeModule {
 
   startBlocking(packageNames: string[], endsAt: number): Promise<void>;
   stopBlocking(): Promise<void>;
+
+  getLapseSummary(endsAt: number): Promise<{ count: number; totalMs: number }>;
 }
 
 export default requireNativeModule<AppBlockerNativeModule>('AppBlockerModule');

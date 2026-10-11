@@ -7,8 +7,13 @@ export interface DurationOption {
 const MINUTE = 60_000;
 
 export const DURATION_OPTIONS: readonly DurationOption[] = [
-  // Dev builds only, so expiry can be tested quickly.
-  ...(__DEV__ ? [{ id: '1m', label: '1 min (dev only)', durationMs: MINUTE }] : []),
+  // Dev builds only, so expiry and lapses can be tested quickly.
+  ...(__DEV__
+    ? [
+        { id: '1m', label: '1 min (dev only)', durationMs: MINUTE },
+        { id: '3m', label: '3 min (dev only)', durationMs: 3 * MINUTE },
+      ]
+    : []),
   { id: '15m', label: '15 min', durationMs: 15 * MINUTE },
   { id: '30m', label: '30 min', durationMs: 30 * MINUTE },
   { id: '1h', label: '1 hour', durationMs: 60 * MINUTE },
@@ -22,6 +27,12 @@ export function describeDuration(ms: number): string {
     return `${hours} ${hours === 1 ? 'hour' : 'hours'}`;
   }
   return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
+}
+
+/** Like describeDuration, but handles very short interruptions. */
+export function describeInterruption(ms: number): string {
+  if (ms < MINUTE) return 'less than a minute';
+  return describeDuration(ms);
 }
 
 /** 3725000 -> "01:02:05". Rounds up so it never shows 00:00:00 before the end. */

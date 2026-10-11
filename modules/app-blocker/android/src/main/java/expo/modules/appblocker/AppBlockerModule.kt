@@ -71,6 +71,11 @@ class AppBlockerModule : Module() {
         AsyncFunction("stopBlocking") {
             BlockState.stop(context)
         }
+
+        AsyncFunction("getLapseSummary") { endsAt: Double ->
+            val summary = BlockState.lapseSummary(context, endsAt.toLong())
+            mapOf("count" to summary.count.toLong(), "totalMs" to summary.totalMs)
+        }
     }
 
     

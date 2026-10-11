@@ -1,25 +1,32 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Redirect, useRouter } from 'expo-router';
 import { useCommitment } from '@/hooks/useCommitment';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { clearExpiredCommitment } from '@/core/commitment/CommitmentManager';
-import { describeDuration } from '@/core/commitment/time';
+import { describeDuration, describeInterruption } from '@/core/commitment/time';
 import { Countdown } from '@/components/Countdown';
 import { useAccessibilityStatus } from '@/hooks/useAccessibilityStatus';
 import { AppBlocker } from '@/native/AppBlocker';
 import { colors, spacing } from '@/theme';
 import { Button } from '@/components/Button';
 import { Screen } from '@/components/Screen';
+import { useLapseSummary } from '@/hooks/useLapseSummary';
 
 
 export default function CommitmentScreen() {
   const router = useRouter();
   const { commitment, loaded } = useCommitment();
   const { granted } = useAccessibilityStatus();
+  const { summary, ready, refresh } = useLapseSummary(commitment?.endsAt ?? null);
   const [expiredNow, setExpiredNow] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const onExpire = useCallback(() => setExpiredNow(true), []);
+
+  // An open interruption is counted up to the end time, so re-read when the timer ends.
+  useEffect(() => {
+    if (expiredNow) void refresh();
+  }, [expiredNow, refresh]);
 
   if (!loaded) return <Screen>{null}</Screen>;
   if (!commitment) return <Redirect href="/" />;
@@ -36,17 +43,32 @@ export default function CommitmentScreen() {
       }
     };
 
+    let message: string | null = null;
+    if (ready) {
+      if (summary === null) {
+        message = 'The timer has ended.';
+      } else if (summary.count === 0) {
+        message = `You stayed away for ${describeDuration(commitment.durationMs)}.`;
+      } else {
+        const times = summary.count === 1 ? 'once' : `${summary.count} times`;
+        message =
+          `The time is up, but Accessibility was turned off during this commitment: ` +
+          `blocking was interrupted ${times}, for about ${describeInterruption(summary.totalMs)} ` +
+          `in total, so your apps weren't protected the whole time.`;
+      }
+    }
+
     return (
       <Screen style={styles.center}>
         <Text style={styles.title}>Commitment complete.</Text>
-        <Text style={styles.body}>
-          You stayed away for {describeDuration(commitment.durationMs)}.
-        </Text>
+        {message && <Text style={styles.body}>{message}</Text>}
         {error && <Text style={styles.error}>{error}</Text>}
         <Button label="Start Another Commitment" onPress={startAnother} />
       </Screen>
     );
   }
+
+  const hadLapse = summary !== null && summary.count > 0;
 
   return (
     <Screen>
@@ -68,6 +90,13 @@ export default function CommitmentScreen() {
         </View>
       )}
 
+      {granted !== false && hadLapse && (
+        <Text style={styles.lapseNote}>
+          Blocking was off earlier in this commitment, for about{' '}
+          {describeInterruption(summary!.totalMs)}.
+        </Text>
+      )}
+
       <Text style={styles.heading}>Blocked apps</Text>
       <ScrollView style={styles.list}>
         {commitment.packageNames.map((p) => (
@@ -87,11 +116,12 @@ const styles = StyleSheet.create({
   center: { justifyContent: 'center' },
   label: { fontSize: 14, letterSpacing: 2, color: colors.textFaint },
   title: { fontSize: 28, fontWeight: '700', color: colors.text },
-  body: { fontSize: 18, color: colors.textMuted },
+  body: { fontSize: 18, color: colors.textMuted, lineHeight: 26 },
   heading: { fontSize: 14, color: colors.textFaint, marginTop: spacing.sm },
   list: { flex: 1 },
   app: { fontSize: 18, color: colors.text, paddingVertical: 6 },
   note: { fontSize: 14, color: colors.textMuted, textAlign: 'center' },
+  lapseNote: { fontSize: 14, color: colors.textMuted },
   encouragement: { fontSize: 16, color: colors.text, textAlign: 'center', fontWeight: '600' },
   error: { color: colors.danger },
   warning: {

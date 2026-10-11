@@ -1,9 +1,9 @@
 package expo.modules.appblocker
 
 import android.accessibilityservice.AccessibilityService
+import android.content.Intent
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
-
 
 /*
     Inherit from AccessibilityService to deliver accessibility events through this API
@@ -29,7 +29,7 @@ class BlockerService : AccessibilityService() {
     }
 
     override fun onInterrupt() {
-        // Nothing to clean up in the MVP.
+        // Nothing to clean up for now.
     }
 
 
@@ -38,7 +38,24 @@ class BlockerService : AccessibilityService() {
     */
     override fun onServiceConnected() {
         super.onServiceConnected()
+        BlockState.noteBlockingResumed(this)
         Log.d(TAG, "Service connected")
+    }
+
+
+    /* 
+        Android calls this when the user turns the service off. 
+    */
+    override fun onUnbind(intent: Intent?): Boolean {
+        BlockState.noteBlockingStopped(this)
+        Log.d(TAG, "Service unbound")
+        return super.onUnbind(intent)
+    }
+
+    
+    override fun onDestroy() {
+        BlockState.noteBlockingStopped(this) // idempotent
+        super.onDestroy()
     }
 
     private companion object {
