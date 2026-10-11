@@ -1,8 +1,8 @@
 import {
-  useCallback, useEffect, useState
+  useCallback, useState
 } from 'react';
 import {
-  Alert, AppState, Pressable, ScrollView, StyleSheet, Text, View
+  Alert, StyleSheet, Text, View
 } from 'react-native';
 import { Redirect, useFocusEffect, useRouter } from 'expo-router';
 import { AppBlocker } from '@/native/AppBlocker';
@@ -12,6 +12,10 @@ import { startCommitment } from '@/core/commitment/CommitmentManager';
 import { describeDuration, DURATION_OPTIONS } from '@/core/commitment/time';
 import { DurationSelector } from '@/components/DurationSelector';
 import { useAccessibilityStatus } from '@/hooks/useAccessibilityStatus';
+import { Button } from '@/components/Button';
+import { Screen } from '@/components/Screen';
+import { colors, spacing } from '@/theme';
+import { isOnboardingDone } from '@/core/onboarding/onboarding';
 
 
 export default function HomeScreen() {
@@ -20,6 +24,7 @@ export default function HomeScreen() {
   const { granted } = useAccessibilityStatus();
 
   const [selectedPackages, setSelectedPackages] = useState<string[]>([]);
+  const [onboarded, setOnboarded] = useState<boolean | null>(null);
   const [durationId, setDurationId] = useState('1h');
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,6 +32,7 @@ export default function HomeScreen() {
   useFocusEffect(
     useCallback(() => {
       void loadSelectedPackages().then(setSelectedPackages);
+      void isOnboardingDone().then(setOnboarded);
     }, [])
   );
 
@@ -70,14 +76,15 @@ export default function HomeScreen() {
     );
   };
 
-  if (!loaded) return <View style={styles.container} />;
+  if (!loaded || onboarded === null) return <Screen>{null}</Screen>;
   if (commitment) return <Redirect href="/commitment" />;
+  if (!onboarded) return <Redirect href="/onboarding" />;
 
   const count = selectedPackages.length;
   const canStart = granted === true && count > 0 && !starting;
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <Screen scroll>
       <Text style={styles.title}>FreeUrBrain</Text>
       <Text style={styles.subtitle}>Take back control of your attention.</Text>
       <Text style={styles.status}>No active commitment.</Text>
@@ -86,61 +93,50 @@ export default function HomeScreen() {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Accessibility access required</Text>
           <Text style={styles.cardBody}>
-            FreeUrBrain needs Accessibility access to detect when a blocked app
-            is opened. Your blocking data stays on your device.
+            FreeUrBrain needs Accessibility access to detect when a blocked app is opened.
+            Your blocking data stays on your device.
           </Text>
-          <Pressable style={styles.button} onPress={AppBlocker.requestPermission}>
-            <Text style={styles.buttonText}>Enable Accessibility</Text>
-          </Pressable>
+          <Button label="Enable Accessibility" onPress={AppBlocker.requestPermission} />
         </View>
       )}
 
       <Text style={styles.selection}>
         {count === 0 ? 'No apps selected.' : `${count} ${count === 1 ? 'app' : 'apps'} selected.`}
       </Text>
-
-      <Pressable style={[styles.button, styles.secondary]} onPress={() => router.push('/apps')}>
-        <Text style={[styles.buttonText, styles.secondaryText]}>
-          {count === 0 ? 'Choose Apps' : 'Change Apps'}
-        </Text>
-      </Pressable>
+      <Button
+        label={count === 0 ? 'Choose Apps' : 'Change Apps'}
+        variant="secondary"
+        onPress={() => router.push('/apps')}
+      />
 
       <DurationSelector options={DURATION_OPTIONS} value={durationId} onChange={setDurationId} />
 
       {error && <Text style={styles.error}>{error}</Text>}
 
-      <Pressable
-        style={[styles.button, !canStart && styles.buttonDisabled]}
+      <Button
+        label={starting ? 'Starting…' : 'Start Commitment'}
         disabled={!canStart}
         onPress={confirmAndStart}
-      >
-        <Text style={styles.buttonText}>{starting ? 'Starting…' : 'Start Commitment'}</Text>
-      </Pressable>
-
+      />
       <Text style={styles.note}>This commitment cannot be cancelled until the timer expires.</Text>
-    </ScrollView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, padding: 24, paddingTop: 64, justifyContent: 'center', gap: 16 },
-  title: { fontSize: 32, fontWeight: '700', color: '#1A1A1A' },
-  subtitle: { fontSize: 16, color: '#555' },
-  status: { fontSize: 14, color: '#888' },
-  selection: { fontSize: 16, color: '#1A1A1A' },
-  error: { color: '#B00020' },
-  note: { fontSize: 13, color: '#888', textAlign: 'center' },
-  card: { borderWidth: 1, borderColor: '#DDD', borderRadius: 12, padding: 16, gap: 12 },
-  cardTitle: { fontSize: 18, fontWeight: '600', color: '#1A1A1A' },
-  cardBody: { fontSize: 14, color: '#555', lineHeight: 20 },
-  button: {
-    backgroundColor: '#1A1A1A',
-    paddingVertical: 14,
+  title: { fontSize: 32, fontWeight: '700', color: colors.text },
+  subtitle: { fontSize: 16, color: colors.textMuted },
+  status: { fontSize: 14, color: colors.textFaint },
+  selection: { fontSize: 16, color: colors.text },
+  error: { color: colors.danger },
+  note: { fontSize: 13, color: colors.textFaint, textAlign: 'center' },
+  card: {
+    borderWidth: 1,
+    borderColor: colors.border,
     borderRadius: 12,
-    alignItems: 'center',
+    padding: spacing.md,
+    gap: 12,
   },
-  buttonDisabled: { backgroundColor: '#BDBDBD' },
-  buttonText: { color: '#FFF', fontSize: 16, fontWeight: '600' },
-  secondary: { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#1A1A1A' },
-  secondaryText: { color: '#1A1A1A' },
+  cardTitle: { fontSize: 18, fontWeight: '600', color: colors.text },
+  cardBody: { fontSize: 14, color: colors.textMuted, lineHeight: 20 },
 });

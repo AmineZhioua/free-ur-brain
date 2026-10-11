@@ -7,6 +7,9 @@ import { describeDuration } from '@/core/commitment/time';
 import { Countdown } from '@/components/Countdown';
 import { useAccessibilityStatus } from '@/hooks/useAccessibilityStatus';
 import { AppBlocker } from '@/native/AppBlocker';
+import { colors, spacing } from '@/theme';
+import { Button } from '@/components/Button';
+import { Screen } from '@/components/Screen';
 
 
 export default function CommitmentScreen() {
@@ -18,7 +21,7 @@ export default function CommitmentScreen() {
 
   const onExpire = useCallback(() => setExpiredNow(true), []);
 
-  if (!loaded) return <View style={styles.container} />;
+  if (!loaded) return <Screen>{null}</Screen>;
   if (!commitment) return <Redirect href="/" />;
 
   const expired = expiredNow || Date.now() >= commitment.endsAt;
@@ -34,21 +37,19 @@ export default function CommitmentScreen() {
     };
 
     return (
-      <View style={styles.container}>
+      <Screen style={styles.center}>
         <Text style={styles.title}>Commitment complete.</Text>
         <Text style={styles.body}>
           You stayed away for {describeDuration(commitment.durationMs)}.
         </Text>
         {error && <Text style={styles.error}>{error}</Text>}
-        <Pressable style={styles.button} onPress={startAnother}>
-          <Text style={styles.buttonText}>Start Another Commitment</Text>
-        </Pressable>
-      </View>
+        <Button label="Start Another Commitment" onPress={startAnother} />
+      </Screen>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <Screen>
       <Text style={styles.label}>COMMITMENT ACTIVE</Text>
       <Countdown endsAt={commitment.endsAt} onExpire={onExpire} />
 
@@ -56,12 +57,14 @@ export default function CommitmentScreen() {
         <View style={styles.warning}>
           <Text style={styles.warningTitle}>Blocking is not active</Text>
           <Text style={styles.warningBody}>
-            Accessibility access is turned off, so FreeUrBrain cannot block your apps
-            right now. Your timer is still running. Turn Accessibility back on to resume blocking.
+            Accessibility access is turned off, so FreeUrBrain cannot block your apps right
+            now. Your timer is still running. Turn Accessibility back on to resume blocking.
           </Text>
-          <Pressable style={styles.warningButton} onPress={AppBlocker.requestPermission}>
-            <Text style={styles.buttonText}>Open Accessibility settings</Text>
-          </Pressable>
+          <Button
+            label="Open Accessibility settings"
+            variant="danger"
+            onPress={AppBlocker.requestPermission}
+          />
         </View>
       )}
 
@@ -74,46 +77,31 @@ export default function CommitmentScreen() {
         ))}
       </ScrollView>
 
-      <Text style={styles.note}>
-        Your commitment cannot be cancelled until the timer expires.
-      </Text>
+      <Text style={styles.note}>Your commitment cannot be cancelled until the timer expires.</Text>
       <Text style={styles.encouragement}>Keep going.</Text>
-    </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, paddingTop: 72, gap: 16 },
-  label: { fontSize: 14, letterSpacing: 2, color: '#888' },
-  title: { fontSize: 28, fontWeight: '700', color: '#1A1A1A', marginTop: 64 },
-  body: { fontSize: 18, color: '#555' },
-  heading: { fontSize: 14, color: '#888', marginTop: 8 },
+  center: { justifyContent: 'center' },
+  label: { fontSize: 14, letterSpacing: 2, color: colors.textFaint },
+  title: { fontSize: 28, fontWeight: '700', color: colors.text },
+  body: { fontSize: 18, color: colors.textMuted },
+  heading: { fontSize: 14, color: colors.textFaint, marginTop: spacing.sm },
   list: { flex: 1 },
-  app: { fontSize: 18, color: '#1A1A1A', paddingVertical: 6 },
-  note: { fontSize: 14, color: '#555', textAlign: 'center' },
-  encouragement: { fontSize: 16, color: '#1A1A1A', textAlign: 'center', fontWeight: '600' },
-  error: { color: '#B00020' },
+  app: { fontSize: 18, color: colors.text, paddingVertical: 6 },
+  note: { fontSize: 14, color: colors.textMuted, textAlign: 'center' },
+  encouragement: { fontSize: 16, color: colors.text, textAlign: 'center', fontWeight: '600' },
+  error: { color: colors.danger },
   warning: {
     borderWidth: 1,
-    borderColor: '#B00020',
-    backgroundColor: '#FDECEA',
+    borderColor: colors.danger,
+    backgroundColor: colors.dangerBackground,
     borderRadius: 12,
-    padding: 16,
-    gap: 8,
+    padding: spacing.md,
+    gap: spacing.sm,
   },
-  warningTitle: { fontSize: 16, fontWeight: '700', color: '#B00020' },
-  warningBody: { fontSize: 14, color: '#5F2120', lineHeight: 20 },
-  warningButton: {
-    backgroundColor: '#B00020',
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  button: {
-    backgroundColor: '#1A1A1A',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  buttonText: { color: '#FFF', fontSize: 16, fontWeight: '600' },
+  warningTitle: { fontSize: 16, fontWeight: '700', color: colors.danger },
+  warningBody: { fontSize: 14, color: colors.dangerText, lineHeight: 20 },
 });

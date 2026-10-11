@@ -6,6 +6,9 @@ import { AppBlocker } from '@/native/AppBlocker';
 import { loadSelectedPackages, saveSelectedPackages } from '@/core/selection/selection';
 import { AppListItem } from '@/components/AppListItem';
 import { loadCommitment } from '@/core/commitment/CommitmentManager';
+import { Button } from '@/components/Button';
+import { colors } from '@/theme';
+import { Screen } from '@/components/Screen';
 
 
 export default function AppsScreen() {
@@ -69,7 +72,7 @@ export default function AppsScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <Screen>
       <View style={styles.header}>
         <Text style={styles.title}>Select apps to block</Text>
         {selected.size > 0 && (
@@ -80,7 +83,6 @@ export default function AppsScreen() {
       </View>
 
       {error && <Text style={styles.error}>Something went wrong: {error}</Text>}
-
       {!apps && !error && <ActivityIndicator style={styles.loading} />}
 
       {apps && (
@@ -99,33 +101,20 @@ export default function AppsScreen() {
         />
       )}
 
-      <Pressable
-        style={[styles.button, (saving || !apps) && styles.buttonDisabled]}
+      <Button
+        label={selected.size > 0 ? `Continue (${selected.size} selected)` : 'Continue with no apps'}
         disabled={saving || !apps}
         onPress={onContinue}
-      >
-        <Text style={styles.buttonText}>
-          {selected.size > 0 ? `Continue (${selected.size} selected)` : 'Continue with no apps'}
-        </Text>
-      </Pressable>
-    </View>
+      />
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: 24, paddingTop: 56, paddingBottom: 24, gap: 12 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  title: { fontSize: 24, fontWeight: '700', color: '#1A1A1A', flexShrink: 1 },
-  clear: { fontSize: 16, color: '#B00020', fontWeight: '600' },
+  title: { fontSize: 24, fontWeight: '700', color: colors.text, flexShrink: 1 },
+  clear: { fontSize: 16, color: colors.danger, fontWeight: '600' },
   list: { flex: 1 },
   loading: { marginTop: 32 },
-  error: { color: '#B00020' },
-  button: {
-    backgroundColor: '#1A1A1A',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  buttonDisabled: { backgroundColor: '#BDBDBD' },
-  buttonText: { color: '#FFF', fontSize: 16, fontWeight: '600' },
+  error: { color: colors.danger },
 });
