@@ -11,29 +11,18 @@ import { useCommitment } from '@/hooks/useCommitment';
 import { startCommitment } from '@/core/commitment/CommitmentManager';
 import { describeDuration, DURATION_OPTIONS } from '@/core/commitment/time';
 import { DurationSelector } from '@/components/DurationSelector';
+import { useAccessibilityStatus } from '@/hooks/useAccessibilityStatus';
 
 
 export default function HomeScreen() {
   const router = useRouter();
   const { commitment, loaded } = useCommitment();
+  const { granted } = useAccessibilityStatus();
 
-  const [granted, setGranted] = useState<boolean | null>(null);
   const [selectedPackages, setSelectedPackages] = useState<string[]>([]);
   const [durationId, setDurationId] = useState('1h');
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const refreshPermission = useCallback(async () => {
-    setGranted(await AppBlocker.isPermissionGranted());
-  }, []);
-
-  useEffect(() => {
-    void refreshPermission();
-    const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active') void refreshPermission();
-    });
-    return () => sub.remove();
-  }, [refreshPermission]);
 
   useFocusEffect(
     useCallback(() => {
@@ -49,6 +38,13 @@ export default function HomeScreen() {
       const installed = await AppBlocker.getInstalledApps();
       const labelByPackage = new Map(installed.map((a) => [a.packageName, a.label]));
       const packageNames = selectedPackages.filter((p) => labelByPackage.has(p));
+
+      if (packageNames.length === 0) {
+        setError('The apps you selected are no longer installed. Please choose apps again.');
+        setStarting(false);
+        return;
+      }
+
       const labels = Object.fromEntries(packageNames.map((p) => [p, labelByPackage.get(p)!]));
 
       await startCommitment({ packageNames, labels, durationMs });
