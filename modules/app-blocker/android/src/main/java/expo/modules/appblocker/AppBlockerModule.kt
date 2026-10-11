@@ -47,7 +47,7 @@ class AppBlockerModule : Module() {
             getInstalledApps()
         }
 
-        // --- Local key-value store (shared with BlockerService) ---
+        // Local key-value store (shared with BlockerService)
         AsyncFunction("storageGetItem") { key: String ->
             prefs.getString(key, null)
         }
@@ -61,6 +61,15 @@ class AppBlockerModule : Module() {
         AsyncFunction("storageRemoveItem") { key: String ->
             prefs.edit().remove(key).commit()
             Unit
+        }
+
+        // Blocking (enforced by BlockerService)
+        AsyncFunction("startBlocking") { packageNames: List<String>, endsAt: Double ->
+            BlockState.start(context, packageNames.toSet(), endsAt.toLong())
+        }
+
+        AsyncFunction("stopBlocking") {
+            BlockState.stop(context)
         }
     }
 

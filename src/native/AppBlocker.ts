@@ -5,11 +5,14 @@ export interface AppBlockerApi {
   requestPermission(): Promise<void>;
   isPermissionGranted(): Promise<boolean>;
   getInstalledApps(): Promise<InstalledApp[]>;
-  // startBlocking / stopBlocking arrive in Milestone 6.
+  startBlocking(packageNames: string[], endsAt: number): Promise<void>;
+  stopBlocking(): Promise<void>;
 }
 
 export const AppBlocker: AppBlockerApi = {
   requestPermission: () => NativeAppBlocker.requestPermission(),
   isPermissionGranted: () => NativeAppBlocker.isPermissionGranted(),
   getInstalledApps: () => NativeAppBlocker.getInstalledApps(),
+  startBlocking: (packageNames, endsAt) => NativeAppBlocker.startBlocking(packageNames, endsAt),
+  stopBlocking: () => NativeAppBlocker.stopBlocking(),
 };

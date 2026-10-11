@@ -19,6 +19,9 @@ interface AppBlockerNativeModule {
   storageGetItem(key: string): Promise<string | null>;
   storageSetItem(key: string, value: string): Promise<void>;
   storageRemoveItem(key: string): Promise<void>;
+
+  startBlocking(packageNames: string[], endsAt: number): Promise<void>;
+  stopBlocking(): Promise<void>;
 }
 
 export default requireNativeModule<AppBlockerNativeModule>('AppBlockerModule');

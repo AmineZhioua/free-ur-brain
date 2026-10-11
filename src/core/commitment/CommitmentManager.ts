@@ -1,7 +1,9 @@
+import { AppBlocker } from '@/native/AppBlocker';
 import type { Commitment } from '../models/Commitment';
 import {
   getJson, removeKey, setJson, StorageKeys
 } from '../storage/storage';
+
 
 export interface StartCommitmentInput {
   packageNames: string[];
@@ -56,7 +58,14 @@ export async function startCommitment(
 
   await setJson(StorageKeys.commitment, commitment);
 
-  // Milestone 6: AppBlocker.startBlocking(packageNames, commitment.endsAt)
+  try {
+    await AppBlocker.startBlocking(commitment.packageNames, commitment.endsAt);
+  } catch (e) {
+    // Never keep a commitment the native layer is not enforcing.
+    await removeKey(StorageKeys.commitment);
+    throw e;
+  }
+
   return commitment;
 }
 
@@ -67,5 +76,7 @@ export async function clearExpiredCommitment(now = Date.now()): Promise<void> {
   if (isActive(existing, now)) {
     throw new Error('This commitment cannot be cancelled until the timer expires.');
   }
+
+  await AppBlocker.stopBlocking();
   await removeKey(StorageKeys.commitment);
 }

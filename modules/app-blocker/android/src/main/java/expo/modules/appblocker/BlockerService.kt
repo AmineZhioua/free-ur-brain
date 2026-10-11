@@ -15,10 +15,10 @@ class BlockerService : AccessibilityService() {
 
         val pkg = event.packageName?.toString() ?: return
 
-        // Never block ourselves.
-        if (pkg == packageName) return // Never block our app "FreeUrBrain"
+        // Never interfere with ourselves or the system UI.
+        if (pkg == packageName || pkg in NEVER_BLOCK) return
 
-        if (pkg in BLOCKED_PACKAGES) {
+        if (BlockState.shouldBlock(this, pkg)) {
             Log.d(TAG, "Blocked $pkg") // for debugging
             /*
                 if the package is blocked then we redirect user to 
@@ -43,9 +43,6 @@ class BlockerService : AccessibilityService() {
 
     private companion object {
         const val TAG = "FreeUrBrain"
-
-        // MILESTONE 2 ONLY: hard-coded for testing.
-        // Replaced by persisted state in Milestone 6.
-        val BLOCKED_PACKAGES = setOf("com.google.android.youtube")
+        val NEVER_BLOCK = setOf("com.android.settings", "com.android.systemui")
     }
 }
