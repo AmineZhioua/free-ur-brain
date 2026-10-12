@@ -8,20 +8,20 @@ import { AppBlocker } from '../native/AppBlocker';
  * summary: null while loading, or if it could not be read.
  * ready: true once the first attempt has finished (successfully or not).
  */
-export function useLapseSummary(endsAt: number | null) {
+export function useLapseSummary(commitmentId: number | null) {
   const [summary, setSummary] = useState<LapseSummary | null>(null);
   const [ready, setReady] = useState(false);
 
   const refresh = useCallback(async () => {
-    if (endsAt == null) return;
+    if (commitmentId == null) return;
     try {
-      setSummary(await AppBlocker.getLapseSummary(endsAt));
+      setSummary(await AppBlocker.getLapseSummary(commitmentId));
     } catch {
       setSummary(null);
     } finally {
       setReady(true);
     }
-  }, [endsAt]);
+  }, [commitmentId]);
 
   useFocusEffect(
     useCallback(() => {

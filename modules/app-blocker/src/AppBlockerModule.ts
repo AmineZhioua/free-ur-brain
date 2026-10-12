@@ -20,10 +20,10 @@ interface AppBlockerNativeModule {
   storageSetItem(key: string, value: string): Promise<void>;
   storageRemoveItem(key: string): Promise<void>;
 
-  startBlocking(packageNames: string[], endsAt: number): Promise<void>;
+  startBlocking(packageNames: string[], durationMs: number, commitmentId: number): Promise<void>;
   stopBlocking(): Promise<void>;
-
-  getLapseSummary(endsAt: number): Promise<{ count: number; totalMs: number }>;
+  getRemainingMs(commitmentId: number): Promise<number>;
+  getLapseSummary(commitmentId: number): Promise<{ count: number; totalMs: number }>;
 }
 
 export default requireNativeModule<AppBlockerNativeModule>('AppBlockerModule');

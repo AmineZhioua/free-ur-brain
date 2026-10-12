@@ -64,16 +64,21 @@ class AppBlockerModule : Module() {
         }
 
         // Blocking (enforced by BlockerService)
-        AsyncFunction("startBlocking") { packageNames: List<String>, endsAt: Double ->
-            BlockState.start(context, packageNames.toSet(), endsAt.toLong())
+        AsyncFunction("startBlocking") { packageNames: List<String>, durationMs: Double, commitmentId: Double ->
+            BlockState.start(context, packageNames.toSet(), durationMs.toLong(), commitmentId.toLong())
         }
 
         AsyncFunction("stopBlocking") {
             BlockState.stop(context)
         }
 
-        AsyncFunction("getLapseSummary") { endsAt: Double ->
-            val summary = BlockState.lapseSummary(context, endsAt.toLong())
+        // Remaining time on the monotonic clock; -1 if native has no timing for this commitment.
+        AsyncFunction("getRemainingMs") { commitmentId: Double ->
+            BlockState.remainingMs(context, commitmentId.toLong())
+        }
+
+        AsyncFunction("getLapseSummary") { commitmentId: Double ->
+            val summary = BlockState.lapseSummary(context, commitmentId.toLong())
             mapOf("count" to summary.count.toLong(), "totalMs" to summary.totalMs)
         }
     }

@@ -98,7 +98,7 @@ export default function OnboardingScreen() {
           <Text style={styles.body}>
             FreeUrBrain is a personal commitment tool, not a lock. Turning off Accessibility,
             force-stopping or uninstalling the app ends the blocking. It works because you
-            chose it.
+            chose it. The timer also doesn't count the time your phone is switched off.
           </Text>
           <Button label="Get started" onPress={finish} />
         </>

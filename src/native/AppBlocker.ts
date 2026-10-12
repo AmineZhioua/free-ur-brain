@@ -6,16 +6,20 @@ export interface AppBlockerApi {
   requestPermission(): Promise<void>;
   isPermissionGranted(): Promise<boolean>;
   getInstalledApps(): Promise<InstalledApp[]>;
-  startBlocking(packageNames: string[], endsAt: number): Promise<void>;
+  /** Idempotent per commitmentId: calling again never restarts the clock. */
+  startBlocking(packageNames: string[], durationMs: number, commitmentId: number): Promise<void>;
   stopBlocking(): Promise<void>;
-  getLapseSummary(endsAt: number): Promise<LapseSummary>;
+  /** Remaining time on the monotonic clock, or -1 if native has no timing for it. */
+  getRemainingMs(commitmentId: number): Promise<number>;
+  getLapseSummary(commitmentId: number): Promise<LapseSummary>;
 }
 
 export const AppBlocker: AppBlockerApi = {
   requestPermission: () => NativeAppBlocker.requestPermission(),
   isPermissionGranted: () => NativeAppBlocker.isPermissionGranted(),
   getInstalledApps: () => NativeAppBlocker.getInstalledApps(),
-  startBlocking: (packageNames, endsAt) => NativeAppBlocker.startBlocking(packageNames, endsAt),
+  startBlocking: (packageNames, durationMs, commitmentId) => NativeAppBlocker.startBlocking(packageNames, durationMs, commitmentId),
   stopBlocking: () => NativeAppBlocker.stopBlocking(),
-  getLapseSummary: (endsAt) => NativeAppBlocker.getLapseSummary(endsAt),
+  getRemainingMs: (commitmentId) => NativeAppBlocker.getRemainingMs(commitmentId),
+  getLapseSummary: (commitmentId) => NativeAppBlocker.getLapseSummary(commitmentId),
 };

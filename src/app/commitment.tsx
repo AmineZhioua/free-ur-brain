@@ -11,27 +11,27 @@ import { colors, spacing } from '@/theme';
 import { Button } from '@/components/Button';
 import { Screen } from '@/components/Screen';
 import { useLapseSummary } from '@/hooks/useLapseSummary';
+import { useRemainingTime } from '@/hooks/useRemainingTime';
 
 
 export default function CommitmentScreen() {
   const router = useRouter();
   const { commitment, loaded } = useCommitment();
   const { granted } = useAccessibilityStatus();
-  const { summary, ready, refresh } = useLapseSummary(commitment?.endsAt ?? null);
-  const [expiredNow, setExpiredNow] = useState(false);
+  const commitmentId = commitment?.id ?? null;
+  const remainingMs = useRemainingTime(commitmentId);
+  const { summary, ready, refresh } = useLapseSummary(commitmentId);
   const [error, setError] = useState<string | null>(null);
 
-  const onExpire = useCallback(() => setExpiredNow(true), []);
+  const expired = remainingMs === 0;
 
-  // An open interruption is counted up to the end time, so re-read when the timer ends.
+  // An open interruption is counted until the end, so re-read when the timer ends.
   useEffect(() => {
-    if (expiredNow) void refresh();
-  }, [expiredNow, refresh]);
+    if (expired) void refresh();
+  }, [expired, refresh]);
 
   if (!loaded) return <Screen>{null}</Screen>;
   if (!commitment) return <Redirect href="/" />;
-
-  const expired = expiredNow || Date.now() >= commitment.endsAt;
 
   if (expired) {
     const startAnother = async () => {
@@ -73,7 +73,7 @@ export default function CommitmentScreen() {
   return (
     <Screen>
       <Text style={styles.label}>COMMITMENT ACTIVE</Text>
-      <Countdown endsAt={commitment.endsAt} onExpire={onExpire} />
+      <Countdown remainingMs={remainingMs} />
 
       {granted === false && (
         <View style={styles.warning}>
@@ -107,6 +107,10 @@ export default function CommitmentScreen() {
       </ScrollView>
 
       <Text style={styles.note}>Your commitment cannot be cancelled until the timer expires.</Text>
+      <Text style={styles.smallNote}>
+        The timer follows the phone's own running time, not its date and time settings.
+        Time while the phone is switched off doesn't count.
+      </Text>
       <Text style={styles.encouragement}>Keep going.</Text>
     </Screen>
   );
@@ -121,6 +125,7 @@ const styles = StyleSheet.create({
   list: { flex: 1 },
   app: { fontSize: 18, color: colors.text, paddingVertical: 6 },
   note: { fontSize: 14, color: colors.textMuted, textAlign: 'center' },
+  smallNote: { fontSize: 12, color: colors.textFaint, textAlign: 'center' },
   lapseNote: { fontSize: 14, color: colors.textMuted },
   encouragement: { fontSize: 16, color: colors.text, textAlign: 'center', fontWeight: '600' },
   error: { color: colors.danger },
