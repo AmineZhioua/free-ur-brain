@@ -1,15 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import type { InstalledApp } from '@/core/models/InstalledApp';
-import { AppBlocker } from '@/native/AppBlocker';
-import { loadSelectedPackages, saveSelectedPackages } from '@/core/selection/selection';
-import { AppListItem } from '@/components/AppListItem';
-import { loadCommitment } from '@/core/commitment/CommitmentManager';
-import { Button } from '@/components/Button';
-import { colors } from '@/theme';
-import { Screen } from '@/components/Screen';
-
+import { AppBlocker } from '../native/AppBlocker';
+import type { InstalledApp } from '../core/models/InstalledApp';
+import { AppListItem } from '../components/AppListItem';
+import { Button } from '../components/Button';
+import { Screen } from '../components/Screen';
+import { loadSelectedPackages, saveSelectedPackages } from '../core/selection/selection';
+import { loadCommitment } from '../core/commitment/CommitmentManager';
+import { colors, type } from '../theme';
 
 export default function AppsScreen() {
   const router = useRouter();
@@ -72,18 +71,32 @@ export default function AppsScreen() {
   };
 
   return (
-    <Screen>
+    <Screen
+      footer={
+        <Button
+          label={selected.size > 0 ? `Continue (${selected.size} selected)` : 'Continue with no apps'}
+          icon="arrowRight"
+          disabled={saving || !apps}
+          onPress={onContinue}
+        />
+      }
+    >
       <View style={styles.header}>
-        <Text style={styles.title}>Select apps to block</Text>
+        <View style={styles.headerText}>
+          <Text style={styles.title}>Select apps to block</Text>
+          <Text style={styles.sub}>
+            {selected.size === 0 ? 'Tap the apps that pull you away.' : `${selected.size} selected`}
+          </Text>
+        </View>
         {selected.size > 0 && (
-          <Pressable onPress={clearAll} hitSlop={8} accessibilityRole="button">
-            <Text style={styles.clear}>Clear all</Text>
+          <Pressable onPress={clearAll} hitSlop={12} accessibilityRole="button">
+            {({ pressed }) => <Text style={[styles.clear, pressed && styles.clearPressed]}>Clear all</Text>}
           </Pressable>
         )}
       </View>
 
       {error && <Text style={styles.error}>Something went wrong: {error}</Text>}
-      {!apps && !error && <ActivityIndicator style={styles.loading} />}
+      {!apps && !error && <ActivityIndicator style={styles.loading} color={colors.blue} />}
 
       {apps && (
         <FlatList
@@ -91,30 +104,24 @@ export default function AppsScreen() {
           keyExtractor={(a) => a.packageName}
           extraData={selected}
           renderItem={({ item }) => (
-            <AppListItem
-              app={item}
-              selected={selected.has(item.packageName)}
-              onToggle={toggle}
-            />
+            <AppListItem app={item} selected={selected.has(item.packageName)} onToggle={toggle} />
           )}
           style={styles.list}
+          showsVerticalScrollIndicator={false}
         />
       )}
-
-      <Button
-        label={selected.size > 0 ? `Continue (${selected.size} selected)` : 'Continue with no apps'}
-        disabled={saving || !apps}
-        onPress={onContinue}
-      />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  title: { fontSize: 24, fontWeight: '700', color: colors.text, flexShrink: 1 },
-  clear: { fontSize: 16, color: colors.danger, fontWeight: '600' },
+  header: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
+  headerText: { flex: 1, gap: 4 },
+  title: { ...type.title, color: colors.ink },
+  sub: { ...type.small, color: colors.inkMuted },
+  clear: { ...type.bodyStrong, color: colors.danger, paddingTop: 6 },
+  clearPressed: { opacity: 0.6 },
   list: { flex: 1 },
   loading: { marginTop: 32 },
-  error: { color: colors.danger },
+  error: { ...type.small, color: colors.danger },
 });

@@ -1,27 +1,28 @@
-import {
-  useCallback, useState
-} from 'react';
-import {
-  Alert, StyleSheet, Text, View
-} from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 import { Redirect, useFocusEffect, useRouter } from 'expo-router';
-import { AppBlocker } from '@/native/AppBlocker';
-import { loadSelectedPackages } from '@/core/selection/selection';
-import { useCommitment } from '@/hooks/useCommitment';
-import { startCommitment } from '@/core/commitment/CommitmentManager';
-import { describeDuration, DURATION_OPTIONS } from '@/core/commitment/time';
-import { DurationSelector } from '@/components/DurationSelector';
-import { useAccessibilityStatus } from '@/hooks/useAccessibilityStatus';
-import { Button } from '@/components/Button';
-import { Screen } from '@/components/Screen';
-import { colors, spacing } from '@/theme';
-import { isOnboardingDone } from '@/core/onboarding/onboarding';
-
+import { AppBlocker } from '../native/AppBlocker';
+import { loadSelectedPackages } from '../core/selection/selection';
+import { startCommitment } from '../core/commitment/CommitmentManager';
+import { DURATION_OPTIONS, describeDuration } from '../core/commitment/time';
+import { isOnboardingDone } from '../core/onboarding/onboarding';
+import { AppIconStack } from '../components/AppIconStack';
+import { BrainFigure } from '../components/BrainFigure';
+import { Button } from '../components/Button';
+import { DurationSelector } from '../components/DurationSelector';
+import { Icon } from '../components/Icon';
+import { Screen } from '../components/Screen';
+import { Breathing, FadeSlideIn } from '../components/motion';
+import { useAccessibilityStatus } from '../hooks/useAccessibilityStatus';
+import { useAppIcons } from '../hooks/useAppIcons';
+import { useCommitment } from '../hooks/useCommitment';
+import { colors, radius, spacing, type } from '../theme';
 
 export default function HomeScreen() {
   const router = useRouter();
   const { commitment, loaded } = useCommitment();
   const { granted } = useAccessibilityStatus();
+  const icons = useAppIcons();
 
   const [selectedPackages, setSelectedPackages] = useState<string[]>([]);
   const [onboarded, setOnboarded] = useState<boolean | null>(null);
@@ -34,6 +35,11 @@ export default function HomeScreen() {
       void loadSelectedPackages().then(setSelectedPackages);
       void isOnboardingDone().then(setOnboarded);
     }, [])
+  );
+
+  const stackItems = useMemo(
+    () => selectedPackages.map((p) => ({ packageName: p, label: p.split('.').pop() ?? p })),
+    [selectedPackages]
   );
 
   const begin = async (durationMs: number) => {
@@ -82,61 +88,144 @@ export default function HomeScreen() {
 
   const count = selectedPackages.length;
   const canStart = granted === true && count > 0 && !starting;
+  const unplugged = granted === false;
 
   return (
     <Screen scroll>
-      <Text style={styles.title}>FreeUrBrain</Text>
-      <Text style={styles.subtitle}>Take back control of your attention.</Text>
-      <Text style={styles.status}>No active commitment.</Text>
+      <View style={styles.brand}>
+        <BrainFigure pose="awake" size={36} />
+        <Text style={styles.wordmark}>FreeUrBrain</Text>
+      </View>
 
-      {granted === false && (
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Accessibility access required</Text>
-          <Text style={styles.cardBody}>
-            FreeUrBrain needs Accessibility access to detect when a blocked app is opened.
-            Your blocking data stays on your device.
-          </Text>
-          <Button label="Enable Accessibility" onPress={AppBlocker.requestPermission} />
+      <FadeSlideIn>
+        <View style={styles.hero}>
+          <View style={styles.heroText}>
+            <Text style={styles.heroLabel}>NO ACTIVE COMMITMENT</Text>
+            <Text style={styles.heroTitle}>
+              {unplugged ? 'Blocking is unplugged.' : 'Give your brain a rest.'}
+            </Text>
+            <Text style={styles.heroSub}>
+              {unplugged ? 'Turn on Accessibility access below.' : 'Take back control of your attention.'}
+            </Text>
+          </View>
+          <View style={styles.heroFigure}>
+            <Breathing>
+              <BrainFigure pose={unplugged ? 'unplugged' : 'awake'} size={132} />
+            </Breathing>
+          </View>
         </View>
+      </FadeSlideIn>
+
+      {unplugged && (
+        <FadeSlideIn delay={60}>
+          <View style={styles.notice}>
+            <View style={styles.noticeHead}>
+              <Icon name="plug" size={22} color={colors.danger} />
+              <Text style={styles.noticeTitle}>Accessibility access required</Text>
+            </View>
+            <Text style={styles.noticeBody}>
+              FreeUrBrain needs Accessibility access to detect when a blocked app is opened.
+              Your blocking data stays on your device.
+            </Text>
+            <Button label="Enable Accessibility" onPress={AppBlocker.requestPermission} />
+          </View>
+        </FadeSlideIn>
       )}
 
-      <Text style={styles.selection}>
-        {count === 0 ? 'No apps selected.' : `${count} ${count === 1 ? 'app' : 'apps'} selected.`}
-      </Text>
-      <Button
-        label={count === 0 ? 'Choose Apps' : 'Change Apps'}
-        variant="secondary"
-        onPress={() => router.push('/apps')}
-      />
+      <FadeSlideIn delay={100}>
+        <View style={styles.card}>
+          <Text style={styles.sectionLabel}>APPS TO BLOCK</Text>
+          <View style={styles.selectionRow}>
+            {count > 0 ? (
+              <AppIconStack items={stackItems} icons={icons} />
+            ) : (
+              <View style={styles.emptyIcon}>
+                <Icon name="apps" size={22} color={colors.inkFaint} />
+              </View>
+            )}
+            <Text style={styles.selection}>
+              {count === 0 ? 'No apps selected.' : `${count} ${count === 1 ? 'app' : 'apps'} selected.`}
+            </Text>
+          </View>
+          <Button
+            label={count === 0 ? 'Choose Apps' : 'Change Apps'}
+            variant="secondary"
+            onPress={() => router.push('/apps')}
+          />
+        </View>
+      </FadeSlideIn>
 
-      <DurationSelector options={DURATION_OPTIONS} value={durationId} onChange={setDurationId} />
+      <FadeSlideIn delay={140}>
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>FOR HOW LONG</Text>
+          <DurationSelector options={DURATION_OPTIONS} value={durationId} onChange={setDurationId} />
+        </View>
+      </FadeSlideIn>
 
       {error && <Text style={styles.error}>{error}</Text>}
 
-      <Button
-        label={starting ? 'Starting…' : 'Start Commitment'}
-        disabled={!canStart}
-        onPress={confirmAndStart}
-      />
-      <Text style={styles.note}>This commitment cannot be cancelled until the timer expires.</Text>
+      <FadeSlideIn delay={180}>
+        <View style={styles.startArea}>
+          <Button
+            label={starting ? 'Starting…' : 'Start Commitment'}
+            icon="lock"
+            disabled={!canStart}
+            onPress={confirmAndStart}
+          />
+          <Text style={styles.note}>This commitment cannot be cancelled until the timer expires.</Text>
+        </View>
+      </FadeSlideIn>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: 32, fontWeight: '700', color: colors.text },
-  subtitle: { fontSize: 16, color: colors.textMuted },
-  status: { fontSize: 14, color: colors.textFaint },
-  selection: { fontSize: 16, color: colors.text },
-  error: { color: colors.danger },
-  note: { fontSize: 13, color: colors.textFaint, textAlign: 'center' },
-  card: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
+  brand: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  wordmark: { ...type.heading, fontSize: 20, lineHeight: 26, color: colors.ink },
+  hero: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.pink,
+    borderRadius: radius.xl,
+    paddingLeft: spacing.lg,
+    paddingVertical: spacing.lg,
+    paddingRight: spacing.sm,
+    overflow: 'hidden',
+  },
+  heroText: { flex: 1, gap: spacing.sm },
+  heroLabel: { ...type.label, color: colors.ink },
+  heroTitle: { ...type.title, color: colors.ink },
+  heroSub: { ...type.small, color: colors.ink },
+  heroFigure: { marginRight: -8 },
+  notice: {
+    backgroundColor: colors.pinkSoft,
+    borderRadius: radius.lg,
     padding: spacing.md,
     gap: 12,
   },
-  cardTitle: { fontSize: 18, fontWeight: '600', color: colors.text },
-  cardBody: { fontSize: 14, color: colors.textMuted, lineHeight: 20 },
+  noticeHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  noticeTitle: { ...type.bodyStrong, color: colors.dangerInk, flexShrink: 1 },
+  noticeBody: { ...type.small, color: colors.ink },
+  card: {
+    borderWidth: 1.5,
+    borderColor: colors.line,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    gap: 14,
+  },
+  sectionLabel: { ...type.label, color: colors.inkFaint },
+  selectionRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  emptyIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: colors.pinkSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selection: { ...type.bodyStrong, color: colors.ink, flexShrink: 1 },
+  section: { gap: 12 },
+  startArea: { gap: 10, marginTop: spacing.sm },
+  error: { ...type.small, color: colors.danger },
+  note: { ...type.caption, color: colors.inkFaint, textAlign: 'center' },
 });

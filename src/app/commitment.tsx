@@ -1,23 +1,28 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { Redirect, useRouter } from 'expo-router';
-import { useCommitment } from '@/hooks/useCommitment';
-import { useCallback, useEffect, useState } from 'react';
-import { clearExpiredCommitment } from '@/core/commitment/CommitmentManager';
-import { describeDuration, describeInterruption } from '@/core/commitment/time';
-import { Countdown } from '@/components/Countdown';
-import { useAccessibilityStatus } from '@/hooks/useAccessibilityStatus';
-import { AppBlocker } from '@/native/AppBlocker';
-import { colors, spacing } from '@/theme';
-import { Button } from '@/components/Button';
-import { Screen } from '@/components/Screen';
-import { useLapseSummary } from '@/hooks/useLapseSummary';
-import { useRemainingTime } from '@/hooks/useRemainingTime';
-
+import { AppIcon } from '../components/AppIcon';
+import { BrainFigure } from '../components/BrainFigure';
+import { Button } from '../components/Button';
+import { Countdown } from '../components/Countdown';
+import { Icon } from '../components/Icon';
+import { Screen } from '../components/Screen';
+import { Breathing, FadeSlideIn } from '../components/motion';
+import { clearExpiredCommitment } from '../core/commitment/CommitmentManager';
+import { describeDuration, describeInterruption } from '../core/commitment/time';
+import { useAccessibilityStatus } from '../hooks/useAccessibilityStatus';
+import { useAppIcons } from '../hooks/useAppIcons';
+import { useCommitment } from '../hooks/useCommitment';
+import { useLapseSummary } from '../hooks/useLapseSummary';
+import { useRemainingTime } from '../hooks/useRemainingTime';
+import { AppBlocker } from '../native/AppBlocker';
+import { colors, radius, spacing, type } from '../theme';
 
 export default function CommitmentScreen() {
   const router = useRouter();
   const { commitment, loaded } = useCommitment();
   const { granted } = useAccessibilityStatus();
+  const icons = useAppIcons();
   const commitmentId = commitment?.id ?? null;
   const remainingMs = useRemainingTime(commitmentId);
   const { summary, ready, refresh } = useLapseSummary(commitmentId);
@@ -59,11 +64,18 @@ export default function CommitmentScreen() {
     }
 
     return (
-      <Screen style={styles.center}>
-        <Text style={styles.title}>Commitment complete.</Text>
-        {message && <Text style={styles.body}>{message}</Text>}
-        {error && <Text style={styles.error}>{error}</Text>}
-        <Button label="Start Another Commitment" onPress={startAnother} />
+      <Screen scroll style={styles.completeContent}>
+        <FadeSlideIn>
+          <View style={styles.completeFigure}>
+            <BrainFigure pose="happy" size={200} />
+          </View>
+        </FadeSlideIn>
+        <FadeSlideIn delay={80} style={styles.completeText}>
+          <Text style={styles.completeTitle}>Commitment complete.</Text>
+          {message && <Text style={styles.completeBody}>{message}</Text>}
+          {error && <Text style={styles.error}>{error}</Text>}
+        </FadeSlideIn>
+        <Button label="Start Another Commitment" icon="arrowRight" onPress={startAnother} />
       </Screen>
     );
   }
@@ -71,13 +83,23 @@ export default function CommitmentScreen() {
   const hadLapse = summary !== null && summary.count > 0;
 
   return (
-    <Screen>
+    <Screen scroll tone="blue">
       <Text style={styles.label}>COMMITMENT ACTIVE</Text>
-      <Countdown remainingMs={remainingMs} />
+
+      <View style={styles.timerBlock}>
+        <Breathing>
+          <BrainFigure pose="asleep" size={176} />
+        </Breathing>
+        <Countdown remainingMs={remainingMs} />
+        <Text style={styles.timerCaption}>left until your apps open again</Text>
+      </View>
 
       {granted === false && (
         <View style={styles.warning}>
-          <Text style={styles.warningTitle}>Blocking is not active</Text>
+          <View style={styles.warningHead}>
+            <Icon name="plug" size={22} color={colors.danger} />
+            <Text style={styles.warningTitle}>Blocking is not active</Text>
+          </View>
           <Text style={styles.warningBody}>
             Accessibility access is turned off, so FreeUrBrain cannot block your apps right
             now. Your timer is still running. Turn Accessibility back on to resume blocking.
@@ -97,46 +119,79 @@ export default function CommitmentScreen() {
         </Text>
       )}
 
-      <Text style={styles.heading}>Blocked apps</Text>
-      <ScrollView style={styles.list}>
-        {commitment.packageNames.map((p) => (
-          <Text key={p} style={styles.app}>
-            {commitment.labels[p] ?? p}
-          </Text>
-        ))}
-      </ScrollView>
+      <View style={styles.apps}>
+        <Text style={styles.appsLabel}>BLOCKED APPS</Text>
+        <View style={styles.grid}>
+          {commitment.packageNames.map((p) => {
+            const label = commitment.labels[p] ?? p;
+            return (
+              <View key={p} style={styles.tile}>
+                <AppIcon uri={icons.get(p)} label={label} size={52} />
+                <Text style={styles.tileLabel} numberOfLines={2}>
+                  {label}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+      </View>
 
-      <Text style={styles.note}>Your commitment cannot be cancelled until the timer expires.</Text>
-      <Text style={styles.smallNote}>
-        The timer follows the phone's own running time, not its date and time settings.
-        Time while the phone is switched off doesn't count.
-      </Text>
-      <Text style={styles.encouragement}>Keep going.</Text>
+      <View style={styles.footerNotes}>
+        <View style={styles.lockRow}>
+          <Icon name="lock" size={18} color={colors.onBlue} />
+          <Text style={styles.note}>Your commitment cannot be cancelled until the timer expires.</Text>
+        </View>
+        <Text style={styles.smallNote}>
+          The timer follows the phone's own running time, not its date and time settings.
+          Time while the phone is switched off doesn't count.
+        </Text>
+        <Text style={styles.encouragement}>Keep going.</Text>
+      </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  center: { justifyContent: 'center' },
-  label: { fontSize: 14, letterSpacing: 2, color: colors.textFaint },
-  title: { fontSize: 28, fontWeight: '700', color: colors.text },
-  body: { fontSize: 18, color: colors.textMuted, lineHeight: 26 },
-  heading: { fontSize: 14, color: colors.textFaint, marginTop: spacing.sm },
-  list: { flex: 1 },
-  app: { fontSize: 18, color: colors.text, paddingVertical: 6 },
-  note: { fontSize: 14, color: colors.textMuted, textAlign: 'center' },
-  smallNote: { fontSize: 12, color: colors.textFaint, textAlign: 'center' },
-  lapseNote: { fontSize: 14, color: colors.textMuted },
-  encouragement: { fontSize: 16, color: colors.text, textAlign: 'center', fontWeight: '600' },
-  error: { color: colors.danger },
+  // Active
+  label: { ...type.label, color: colors.onBlueMuted, textAlign: 'center' },
+  timerBlock: { alignItems: 'center', gap: spacing.sm },
+  timerCaption: { ...type.small, color: colors.onBlueMuted },
+  apps: {
+    backgroundColor: colors.white,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    gap: spacing.md,
+  },
+  appsLabel: { ...type.label, color: colors.inkFaint },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 14 },
+  tile: { width: 72, alignItems: 'center', gap: 6 },
+  tileLabel: { ...type.caption, color: colors.ink, textAlign: 'center' },
+  footerNotes: { gap: spacing.sm, alignItems: 'center' },
+  lockRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  note: { ...type.small, color: colors.onBlue, flexShrink: 1 },
+  smallNote: { ...type.caption, color: colors.onBlueMuted, textAlign: 'center' },
+  encouragement: { ...type.heading, color: colors.onBlue, marginTop: spacing.sm },
+  lapseNote: { ...type.small, color: colors.onBlueMuted, textAlign: 'center' },
   warning: {
-    borderWidth: 1,
-    borderColor: colors.danger,
-    backgroundColor: colors.dangerBackground,
-    borderRadius: 12,
+    backgroundColor: colors.pinkSoft,
+    borderRadius: radius.lg,
     padding: spacing.md,
     gap: spacing.sm,
   },
-  warningTitle: { fontSize: 16, fontWeight: '700', color: colors.danger },
-  warningBody: { fontSize: 14, color: colors.dangerText, lineHeight: 20 },
+  warningHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  warningTitle: { ...type.bodyStrong, color: colors.dangerInk, flexShrink: 1 },
+  warningBody: { ...type.small, color: colors.ink },
+
+  // Complete
+  completeContent: { justifyContent: 'center', gap: spacing.lg },
+  completeFigure: {
+    alignItems: 'center',
+    backgroundColor: colors.pink,
+    borderRadius: radius.xl,
+    paddingVertical: spacing.lg,
+  },
+  completeText: { gap: spacing.sm },
+  completeTitle: { ...type.hero, color: colors.ink },
+  completeBody: { ...type.lead, color: colors.inkMuted },
+  error: { ...type.small, color: colors.danger },
 });

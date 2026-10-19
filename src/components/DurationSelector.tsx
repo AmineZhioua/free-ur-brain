@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { DurationOption } from '../core/commitment/time';
+import { colors, radius, type } from '../theme';
 
 interface Props {
   options: readonly DurationOption[];
@@ -9,22 +10,24 @@ interface Props {
 
 export function DurationSelector({ options, value, onChange }: Props) {
   return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>Duration</Text>
+    <View style={styles.wrap} accessibilityRole="radiogroup">
       {options.map((option) => {
         const selected = option.id === value;
         return (
           <Pressable
             key={option.id}
-            style={styles.row}
             onPress={() => onChange(option.id)}
             accessibilityRole="radio"
             accessibilityState={{ selected }}
+            style={({ pressed }) => [
+              styles.chip,
+              selected && styles.chipSelected,
+              pressed && !selected && styles.chipPressed,
+            ]}
           >
-            <View style={[styles.radio, selected && styles.radioSelected]}>
-              {selected && <View style={styles.dot} />}
-            </View>
-            <Text style={styles.label}>{option.label}</Text>
+            <Text style={[type.bodyStrong, { color: selected ? colors.white : colors.ink }]}>
+              {option.label}
+            </Text>
           </Pressable>
         );
       })}
@@ -33,19 +36,17 @@ export function DurationSelector({ options, value, onChange }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 4 },
-  heading: { fontSize: 14, color: '#888', marginBottom: 4 },
-  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, gap: 12 },
-  radio: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+  wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  chip: {
+    minHeight: 46,
+    paddingHorizontal: 18,
+    borderRadius: radius.pill,
     borderWidth: 1.5,
-    borderColor: '#999',
+    borderColor: colors.line,
+    backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  radioSelected: { borderColor: '#1A1A1A' },
-  dot: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#1A1A1A' },
-  label: { fontSize: 16, color: '#1A1A1A' },
+  chipSelected: { backgroundColor: colors.blue, borderColor: colors.blue },
+  chipPressed: { backgroundColor: colors.pinkSoft, borderColor: colors.pink },
 });

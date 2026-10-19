@@ -1,17 +1,26 @@
-import { Pressable, StyleSheet, Text } from 'react-native';
-import { colors } from '../theme';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Icon, type IconName } from './Icon';
+import { colors, radius, type } from '../theme';
 
-type Variant = 'primary' | 'secondary' | 'danger';
+type Variant = 'primary' | 'secondary' | 'danger' | 'onBlue';
 
 interface Props {
   label: string;
   onPress: () => void;
   variant?: Variant;
   disabled?: boolean;
+  icon?: IconName;
 }
 
-export function Button({ label, onPress, variant = 'primary', disabled = false }: Props) {
-  const darkLabel = variant === 'secondary' && !disabled;
+const BG: Record<Variant, { rest: string; pressed: string; label: string; border?: string }> = {
+  primary: { rest: colors.blue, pressed: colors.blueDark, label: colors.onBlue },
+  secondary: { rest: colors.white, pressed: colors.blueSoft, label: colors.blue, border: colors.blue },
+  danger: { rest: colors.danger, pressed: colors.dangerInk, label: colors.white },
+  onBlue: { rest: colors.white, pressed: colors.blueSoft, label: colors.blue },
+};
+
+export function Button({ label, onPress, variant = 'primary', disabled = false, icon }: Props) {
+  const v = BG[variant];
 
   return (
     <Pressable
@@ -21,23 +30,29 @@ export function Button({ label, onPress, variant = 'primary', disabled = false }
       onPress={onPress}
       style={({ pressed }) => [
         styles.base,
-        styles[variant],
-        disabled && styles.disabled,
-        pressed && !disabled && styles.pressed,
+        {
+          backgroundColor: disabled ? colors.disabled : pressed ? v.pressed : v.rest,
+          borderColor: disabled ? colors.disabled : v.border ?? 'transparent',
+          transform: [{ scale: pressed && !disabled ? 0.98 : 1 }],
+        },
       ]}
     >
-      <Text style={[styles.label, darkLabel && styles.labelDark]}>{label}</Text>
+      <View style={styles.inner}>
+        <Text style={[type.button, { color: disabled ? colors.onDisabled : v.label }]}>{label}</Text>
+        {icon && <Icon name={icon} size={20} color={disabled ? colors.onDisabled : v.label} />}
+      </View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  base: { paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
-  primary: { backgroundColor: colors.primary },
-  secondary: { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.primary },
-  danger: { backgroundColor: colors.danger },
-  disabled: { backgroundColor: colors.disabled, borderColor: colors.disabled },
-  pressed: { opacity: 0.85 },
-  label: { color: colors.onPrimary, fontSize: 16, fontWeight: '600' },
-  labelDark: { color: colors.text },
+  base: {
+    minHeight: 54,
+    paddingHorizontal: 20,
+    borderRadius: radius.pill,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  inner: { flexDirection: 'row', alignItems: 'center', gap: 10 },
 });

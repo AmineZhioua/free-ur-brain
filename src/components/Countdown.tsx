@@ -1,6 +1,6 @@
 import { StyleSheet, Text } from 'react-native';
 import { formatCountdown } from '../core/commitment/time';
-import { colors } from '@/theme';
+import { colors, type } from '../theme';
 
 interface Props {
   /** null = unknown */
@@ -8,18 +8,19 @@ interface Props {
 }
 
 export function Countdown({ remainingMs }: Props) {
+  const text = remainingMs === null ? '--:--:--' : formatCountdown(remainingMs);
   return (
-    <Text style={styles.timer}>
-      {remainingMs === null ? '--:--:--' : formatCountdown(remainingMs)}
+    <Text style={styles.timer} accessibilityRole="timer" accessibilityLabel={`Time left ${text}`}>
+      {text}
     </Text>
   );
 }
 
 const styles = StyleSheet.create({
   timer: {
-    fontSize: 56,
-    fontWeight: '300',
-    color: colors.text,
+    ...type.timer,
+    color: colors.onBlue,
     fontVariant: ['tabular-nums'],
+    textAlign: 'center',
   },
 });

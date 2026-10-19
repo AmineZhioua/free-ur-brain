@@ -1,6 +1,10 @@
 import { memo } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { InstalledApp } from '../core/models/InstalledApp';
+import { AppIcon } from './AppIcon';
+import { Icon } from './Icon';
+import { Pop } from './motion';
+import { colors, radius, type } from '../theme';
 
 interface Props {
   app: InstalledApp;
@@ -11,19 +15,25 @@ interface Props {
 function AppListItemBase({ app, selected, onToggle }: Props) {
   return (
     <Pressable
-      style={styles.row}
       onPress={() => onToggle(app.packageName)}
       accessibilityRole="checkbox"
       accessibilityState={{ checked: selected }}
       accessibilityLabel={app.label}
+      style={({ pressed }) => [
+        styles.row,
+        selected && styles.rowSelected,
+        pressed && styles.rowPressed,
+      ]}
     >
-      <Image source={{ uri: app.icon }} style={styles.icon} />
-      <Text style={styles.label} numberOfLines={1}>
+      <AppIcon uri={app.icon} label={app.label} size={44} />
+      <Text style={[type.bodyStrong, styles.label]} numberOfLines={1}>
         {app.label}
       </Text>
-      <View style={[styles.box, selected && styles.boxSelected]}>
-        {selected && <Text style={styles.check}>✓</Text>}
-      </View>
+      <Pop active={selected}>
+        <View style={[styles.box, selected && styles.boxSelected]}>
+          {selected && <Icon name="check" size={16} color={colors.white} strokeWidth={3} />}
+        </View>
+      </Pop>
     </Pressable>
   );
 }
@@ -35,19 +45,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 10,
+    paddingHorizontal: 12,
     gap: 14,
+    borderRadius: radius.md,
   },
-  icon: { width: 40, height: 40, borderRadius: 8 },
-  label: { flex: 1, fontSize: 16, color: '#1A1A1A' },
+  rowSelected: { backgroundColor: colors.blueSoft },
+  rowPressed: { backgroundColor: colors.pinkSoft },
+  label: { flex: 1, color: colors.ink },
   box: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
-    borderWidth: 1.5,
-    borderColor: '#999',
+    width: 26,
+    height: 26,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: colors.inkFaint,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: colors.white,
   },
-  boxSelected: { backgroundColor: '#1A1A1A', borderColor: '#1A1A1A' },
-  check: { color: '#FFF', fontSize: 14, fontWeight: '700' },
+  boxSelected: { backgroundColor: colors.blue, borderColor: colors.blue },
 });
