@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { AmbientBackground } from './AmbientBackground';
 import { colors, spacing } from '../theme';
 
 interface Props {
@@ -12,9 +13,18 @@ interface Props {
   /** Pinned to the bottom, outside the scrolling area. */
   footer?: ReactNode;
   style?: StyleProp<ViewStyle>;
+  /** Whether to show the art-directed ambient background animation (defaults to true) */
+  animatedBackground?: boolean;
 }
 
-export function Screen({ children, scroll = false, tone = 'light', footer, style }: Props) {
+export function Screen({
+  children,
+  scroll = false,
+  tone = 'light',
+  footer,
+  style,
+  animatedBackground = true,
+}: Props) {
   const insets = useSafeAreaInsets();
 
   const padding: ViewStyle = {
@@ -26,6 +36,7 @@ export function Screen({ children, scroll = false, tone = 'light', footer, style
   return (
     <View style={[styles.root, tone === 'blue' && styles.blue]}>
       <StatusBar style={tone === 'blue' ? 'light' : 'dark'} />
+      {animatedBackground && <AmbientBackground tone={tone} />}
       {scroll ? (
         <ScrollView
           style={styles.scroll}
