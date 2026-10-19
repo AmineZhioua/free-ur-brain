@@ -10,7 +10,9 @@ export type IconName =
   | 'shield'
   | 'battery'
   | 'apps'
-  | 'moon';
+  | 'moon'
+  | 'plus'
+  | 'minus';
 
 interface Props {
   name: IconName;
@@ -74,6 +76,8 @@ export function Icon({ name, size = 24, color = colors.ink, strokeWidth = 2.2 }:
         </>
       )}
       {name === 'moon' && <Path d="M20 14.5 A8.5 8.5 0 1 1 9.5 4 A7 7 0 0 0 20 14.5 Z" {...p} />}
+      {name === 'plus' && <Path d="M12 5 V19 M5 12 H19" {...p} />}
+      {name === 'minus' && <Path d="M5 12 H19" {...p} />}
     </Svg>
   );
 }

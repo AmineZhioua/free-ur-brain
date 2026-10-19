@@ -4,7 +4,13 @@ import { Redirect, useFocusEffect, useRouter } from 'expo-router';
 import { AppBlocker } from '../native/AppBlocker';
 import { loadSelectedPackages } from '../core/selection/selection';
 import { startCommitment } from '../core/commitment/CommitmentManager';
-import { DURATION_OPTIONS, describeDuration } from '../core/commitment/time';
+import {
+  DURATION_OPTIONS,
+  CUSTOM_DURATION_ID,
+  DEFAULT_CUSTOM_DURATION_MS,
+  MINUTE,
+  describeDuration,
+} from '../core/commitment/time';
 import { isOnboardingDone } from '../core/onboarding/onboarding';
 import { AppIconStack } from '../components/AppIconStack';
 import { BrainFigure } from '../components/BrainFigure';
@@ -27,6 +33,7 @@ export default function HomeScreen() {
   const [selectedPackages, setSelectedPackages] = useState<string[]>([]);
   const [onboarded, setOnboarded] = useState<boolean | null>(null);
   const [durationId, setDurationId] = useState('1h');
+  const [customDurationMs, setCustomDurationMs] = useState(DEFAULT_CUSTOM_DURATION_MS);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,6 +48,17 @@ export default function HomeScreen() {
     () => selectedPackages.map((p) => ({ packageName: p, label: p.split('.').pop() ?? p })),
     [selectedPackages]
   );
+
+  const isCustom = durationId === CUSTOM_DURATION_ID;
+  const activeDurationMs = isCustom
+    ? customDurationMs
+    : DURATION_OPTIONS.find((o) => o.id === durationId)?.durationMs ?? 0;
+
+  const selectedDuration = isCustom
+    ? describeDuration(customDurationMs)
+    : DURATION_OPTIONS.find((o) => o.id === durationId)?.label ?? '1 hour';
+
+  const isDurationValid = activeDurationMs >= MINUTE;
 
   const begin = async (durationMs: number) => {
     setStarting(true);
@@ -67,16 +85,15 @@ export default function HomeScreen() {
   };
 
   const confirmAndStart = () => {
-    const option = DURATION_OPTIONS.find((o) => o.id === durationId);
-    if (!option) return;
+    if (!isDurationValid) return;
 
     Alert.alert(
       'Start commitment?',
-      `Your selected apps will be blocked for ${describeDuration(option.durationMs)}. ` +
+      `Your selected apps will be blocked for ${describeDuration(activeDurationMs)}. ` +
         'This commitment cannot be cancelled until the timer expires.',
       [
         { text: 'Not yet', style: 'cancel' },
-        { text: 'Lock in', style: 'destructive', onPress: () => void begin(option.durationMs) },
+        { text: 'Lock in', style: 'destructive', onPress: () => void begin(activeDurationMs) },
       ]
     );
   };
@@ -86,9 +103,8 @@ export default function HomeScreen() {
   if (!onboarded) return <Redirect href="/onboarding" />;
 
   const count = selectedPackages.length;
-  const canStart = granted === true && count > 0 && !starting;
+  const canStart = granted === true && count > 0 && !starting && isDurationValid;
   const unplugged = granted === false;
-  const selectedDuration = DURATION_OPTIONS.find((o) => o.id === durationId)?.label ?? '1 hour';
 
   return (
     <Screen scroll>
@@ -227,7 +243,13 @@ export default function HomeScreen() {
             </View>
             <Text style={styles.cardHeading}>Commitment Length</Text>
           </View>
-          <DurationSelector options={DURATION_OPTIONS} value={durationId} onChange={setDurationId} />
+          <DurationSelector
+            options={DURATION_OPTIONS}
+            value={durationId}
+            onChange={setDurationId}
+            customDurationMs={customDurationMs}
+            onCustomDurationChange={setCustomDurationMs}
+          />
         </View>
       </FadeSlideIn>
 
@@ -246,6 +268,8 @@ export default function HomeScreen() {
                 ? 'Starting Commitment…'
                 : count === 0
                 ? 'Select Apps to Begin'
+                : !isDurationValid
+                ? 'Select at least 1 min'
                 : `Commit for ${selectedDuration}`
             }
             icon="lock"
@@ -504,6 +528,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 2,
     paddingHorizontal: 12,
+    marginTop: 15
   },
   promiseText: {
     fontFamily: fonts.body,

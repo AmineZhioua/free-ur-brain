@@ -10,7 +10,14 @@ interface Props {
 export function Countdown({ remainingMs }: Props) {
   const text = remainingMs === null ? '--:--:--' : formatCountdown(remainingMs);
   return (
-    <Text style={styles.timer} accessibilityRole="timer" accessibilityLabel={`Time left ${text}`}>
+    <Text
+      style={styles.timer}
+      accessibilityRole="timer"
+      accessibilityLabel={`Time left ${text}`}
+      numberOfLines={1}
+      adjustsFontSizeToFit
+      minimumFontScale={0.6}
+    >
       {text}
     </Text>
   );
