@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import androidx.core.app.NotificationManagerCompat
 import android.content.pm.ResolveInfo
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -43,6 +44,25 @@ class AppBlockerModule : Module() {
             context.startActivity(intent)
         }
 
+        AsyncFunction("isNotificationAccessGranted") {
+            NotificationManagerCompat.getEnabledListenerPackages(context).contains(context.packageName)
+        }
+        
+        AsyncFunction("requestNotificationAccess") {
+            val component = ComponentName(context, NotificationBlockerService::class.java)
+            val detail = Intent(Settings.ACTION_NOTIFICATION_LISTENER_DETAIL_SETTINGS) // Android 11+
+                .putExtra(Settings.EXTRA_NOTIFICATION_LISTENER_COMPONENT_NAME, component.flattenToString())
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            try {
+                context.startActivity(detail)
+            } catch (e: Exception) {
+                context.startActivity(
+                    Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                )
+            }
+        }
+
         AsyncFunction("getInstalledApps") {
             getInstalledApps()
         }
@@ -65,6 +85,7 @@ class AppBlockerModule : Module() {
 
         // Blocking (enforced by BlockerService)
         AsyncFunction("startBlocking") { packageNames: List<String>, durationMs: Double, commitmentId: Double ->
+            NotificationBlockerService.sweepNow() // clear notifications already in the shade
             BlockState.start(context, packageNames.toSet(), durationMs.toLong(), commitmentId.toLong())
         }
 

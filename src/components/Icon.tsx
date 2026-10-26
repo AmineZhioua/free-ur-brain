@@ -11,8 +11,7 @@ export type IconName =
   | 'battery'
   | 'apps'
   | 'moon'
-  | 'plus'
-  | 'minus';
+  | 'bell';
 
 interface Props {
   name: IconName;
@@ -75,9 +74,13 @@ export function Icon({ name, size = 24, color = colors.ink, strokeWidth = 2.2 }:
           <Rect x={13.5} y={13.5} width={6.5} height={6.5} rx={2} {...p} />
         </>
       )}
+      {name === 'bell' && (
+        <>
+          <Path d="M6 16 V11 a6 6 0 0 1 12 0 V16 L19.5 18 H4.5 Z" {...p} />
+          <Path d="M10 21 a2 2 0 0 0 4 0" {...p} />
+        </>
+      )}
       {name === 'moon' && <Path d="M20 14.5 A8.5 8.5 0 1 1 9.5 4 A7 7 0 0 0 20 14.5 Z" {...p} />}
-      {name === 'plus' && <Path d="M12 5 V19 M5 12 H19" {...p} />}
-      {name === 'minus' && <Path d="M5 12 H19" {...p} />}
     </Svg>
   );
 }

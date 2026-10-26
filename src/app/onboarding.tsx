@@ -8,6 +8,7 @@ import { Screen } from '../components/Screen';
 import { Breathing, FadeSlideIn } from '../components/motion';
 import { AppBlocker } from '../native/AppBlocker';
 import { useAccessibilityStatus } from '../hooks/useAccessibilityStatus';
+import { useNotificationAccess } from '../hooks/useNotificationAccess';
 import { markOnboardingDone } from '../core/onboarding/onboarding';
 import { colors, radius, spacing, type } from '../theme';
 
@@ -25,9 +26,12 @@ const HOW_IT_WORKS = [
   'Start. Those apps are blocked until the time is up.',
 ];
 
+const STEP_COUNT = 4;
+
 export default function OnboardingScreen() {
   const router = useRouter();
   const { granted } = useAccessibilityStatus();
+  const { granted: notifGranted } = useNotificationAccess();
   const [step, setStep] = useState(0);
 
   const finish = async () => {
@@ -35,7 +39,18 @@ export default function OnboardingScreen() {
     router.replace('/');
   };
 
-  const pose: BrainPose = step === 0 ? 'awake' : step === 1 ? (granted ? 'happy' : 'unplugged') : 'asleep';
+  const pose: BrainPose =
+    step === 0
+      ? 'awake'
+      : step === 1
+      ? granted
+        ? 'happy'
+        : 'unplugged'
+      : step === 2
+      ? notifGranted
+        ? 'happy'
+        : 'unplugged'
+      : 'asleep';
 
   const footer =
     step === 0 ? (
@@ -55,14 +70,31 @@ export default function OnboardingScreen() {
           </Text>
         )}
       </>
+    ) : step === 2 ? (
+      <>
+        {!notifGranted && (
+          <Button label="Enable Notification access" onPress={AppBlocker.requestNotificationAccess} />
+        )}
+        <Button
+          label="Continue"
+          icon="arrowRight"
+          variant={notifGranted ? 'primary' : 'secondary'}
+          onPress={() => setStep(3)}
+        />
+        {!notifGranted && (
+          <Text style={styles.small}>
+            You can enable it later, but a commitment can't start without it.
+          </Text>
+        )}
+      </>
     ) : (
       <Button label="Get started" icon="arrowRight" onPress={finish} />
     );
 
   return (
     <Screen scroll footer={footer}>
-      <View style={styles.progress} accessibilityLabel={`Step ${step + 1} of 3`}>
-        {[0, 1, 2].map((i) => (
+      <View style={styles.progress} accessibilityLabel={`Step ${step + 1} of ${STEP_COUNT}`}>
+        {Array.from({ length: STEP_COUNT }, (_, i) => i).map((i) => (
           <View key={i} style={[styles.segment, i <= step && styles.segmentOn]} />
         ))}
       </View>
@@ -124,6 +156,31 @@ export default function OnboardingScreen() {
 
         {step === 2 && (
           <>
+            <Text style={styles.title}>Why Notification access?</Text>
+            <Text style={styles.body}>
+              A blocked app can't be opened, but it can still buzz you with notifications.
+              FreeUrBrain uses Notification access only to dismiss notifications from the apps
+              you blocked, while a commitment is running.
+            </Text>
+            <Text style={styles.body}>
+              It only looks at which app posted a notification. It does not read, save or send
+              what they say. Notifications dismissed during a commitment are not shown again
+              afterwards.
+            </Text>
+            <Text style={styles.body}>
+              You stay in control: you can turn it off at any time in Android settings.
+            </Text>
+            {notifGranted && (
+              <View style={styles.okRow}>
+                <Icon name="bell" size={22} color={colors.success} />
+                <Text style={styles.ok}>Notification access is on.</Text>
+              </View>
+            )}
+          </>
+        )}
+
+        {step === 3 && (
+          <>
             <Text style={styles.title}>Keep it running</Text>
             <Text style={styles.body}>
               Some phones stop background services to save battery. If blocking ever stops
@@ -139,8 +196,8 @@ export default function OnboardingScreen() {
             <View style={styles.goodToKnow}>
               <Text style={styles.heading}>Good to know</Text>
               <Text style={styles.body}>
-                FreeUrBrain is a personal commitment tool, not a lock. Turning off Accessibility,
-                force-stopping or uninstalling the app ends the blocking. It works because you
+                FreeUrBrain is a personal commitment tool, not a lock. Turning off Accessibility
+                or Notification access, force-stopping or uninstalling the app ends the blocking. It works because you
                 chose it. The timer also doesn't count the time your phone is switched off.
               </Text>
             </View>

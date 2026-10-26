@@ -12,8 +12,8 @@ export const CUSTOM_DURATION_ID = 'custom';
 export const DEFAULT_CUSTOM_DURATION_MS = 4 * HOUR;
 
 export const DURATION_OPTIONS: readonly DurationOption[] = [
-  { id: '1m', label: '1 min', durationMs: MINUTE },
-  { id: '3m', label: '3 min', durationMs: 3 * MINUTE },
+  // { id: '1m', label: '1 min', durationMs: MINUTE },
+  // { id: '3m', label: '3 min', durationMs: 3 * MINUTE },
   { id: '15m', label: '15 min', durationMs: 15 * MINUTE },
   { id: '30m', label: '30 min', durationMs: 30 * MINUTE },
   { id: '1h', label: '1 hour', durationMs: HOUR },

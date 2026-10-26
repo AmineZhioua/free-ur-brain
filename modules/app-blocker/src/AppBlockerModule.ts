@@ -24,6 +24,9 @@ interface AppBlockerNativeModule {
   stopBlocking(): Promise<void>;
   getRemainingMs(commitmentId: number): Promise<number>;
   getLapseSummary(commitmentId: number): Promise<{ count: number; totalMs: number }>;
+
+  isNotificationAccessGranted(): Promise<boolean>;
+  requestNotificationAccess(): Promise<void>;
 }
 
 export default requireNativeModule<AppBlockerNativeModule>('AppBlockerModule');

@@ -12,6 +12,9 @@ export interface AppBlockerApi {
   /** Remaining time on the monotonic clock, or -1 if native has no timing for it. */
   getRemainingMs(commitmentId: number): Promise<number>;
   getLapseSummary(commitmentId: number): Promise<LapseSummary>;
+
+  isNotificationAccessGranted(): Promise<boolean>;
+  requestNotificationAccess(): Promise<void>;
 }
 
 export const AppBlocker: AppBlockerApi = {
@@ -22,4 +25,6 @@ export const AppBlocker: AppBlockerApi = {
   stopBlocking: () => NativeAppBlocker.stopBlocking(),
   getRemainingMs: (commitmentId) => NativeAppBlocker.getRemainingMs(commitmentId),
   getLapseSummary: (commitmentId) => NativeAppBlocker.getLapseSummary(commitmentId),
+  isNotificationAccessGranted: () => NativeAppBlocker.isNotificationAccessGranted(),
+  requestNotificationAccess: () => NativeAppBlocker.requestNotificationAccess()
 };

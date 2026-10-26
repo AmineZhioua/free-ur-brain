@@ -23,9 +23,12 @@ import { useAccessibilityStatus } from '../hooks/useAccessibilityStatus';
 import { useAppIcons } from '../hooks/useAppIcons';
 import { useCommitment } from '../hooks/useCommitment';
 import { colors, radius, spacing, type, fonts } from '../theme';
+import { useNotificationAccess } from '@/hooks/useNotificationAccess';
+import { NotificationAccessCard } from '@/components/NotificationAccessCard';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { granted: notifGranted } = useNotificationAccess();
   const { commitment, loaded } = useCommitment();
   const { granted } = useAccessibilityStatus();
   const icons = useAppIcons();
@@ -103,7 +106,7 @@ export default function HomeScreen() {
   if (!onboarded) return <Redirect href="/onboarding" />;
 
   const count = selectedPackages.length;
-  const canStart = granted === true && count > 0 && !starting && isDurationValid;
+  const canStart = granted === true && notifGranted === true && count > 0 && !starting && isDurationValid;
   const unplugged = granted === false;
 
   return (
@@ -169,6 +172,15 @@ export default function HomeScreen() {
                 />
               </View>
             </View>
+          </View>
+        </FadeSlideIn>
+      )}
+
+      {/* Notifications access Warning Callout */}
+      {notifGranted === false && (
+        <FadeSlideIn delay={75}>
+          <View style={styles.alertBanner}>
+            <NotificationAccessCard context="start" />
           </View>
         </FadeSlideIn>
       )}
@@ -268,6 +280,8 @@ export default function HomeScreen() {
                 ? 'Starting Commitment…'
                 : count === 0
                 ? 'Select Apps to Begin'
+                : notifGranted === false
+                ? 'Enable Notification Access'
                 : !isDurationValid
                 ? 'Select at least 1 min'
                 : `Commit for ${selectedDuration}`
