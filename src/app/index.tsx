@@ -202,7 +202,7 @@ export default function HomeScreen() {
             accessibilityLabel={count === 0 ? 'Choose apps to block' : `${count} apps selected. Tap to change.`}
           >
             {count > 0 ? (
-              <AppIconStack items={stackItems} icons={icons} max={5} size={42} />
+              <AppIconStack items={stackItems} icons={icons} max={4} size={28} />
             ) : (
               <View style={styles.emptyStack}>
                 <Icon name="apps" size={24} color={colors.inkFaint} />

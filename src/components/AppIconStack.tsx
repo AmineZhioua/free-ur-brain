@@ -45,7 +45,11 @@ export function AppIconStack({ items, icons, max = 5, size = 40 }: Props) {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center' },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 0,
+  },
   ring: { borderWidth: 3, borderColor: colors.white, backgroundColor: colors.white },
   more: {
     backgroundColor: colors.blueSoft,

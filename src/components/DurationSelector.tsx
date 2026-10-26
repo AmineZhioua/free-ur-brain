@@ -441,8 +441,11 @@ const styles = StyleSheet.create({
     borderColor: colors.pink,
   },
 
+  
   // Custom panel
   customBox: {
+    width: '100%',
+    minWidth: 0,
     backgroundColor: colors.cream,
     borderRadius: radius.lg,
     borderWidth: 1.5,
@@ -451,40 +454,51 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   customHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: 'column',
+    alignItems: 'stretch',
     gap: 8,
+    minWidth: 0,
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    minWidth: 0,
   },
   customTitle: {
+    flex: 1,
+    flexShrink: 1,
     fontFamily: fonts.bodyBold,
     fontSize: 14,
     color: colors.ink,
   },
   previewPill: {
+    alignSelf: 'flex-start',
+    maxWidth: '100%',
     backgroundColor: colors.blueSoft,
     paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingVertical: 5,
     borderRadius: radius.pill,
   },
   previewPillText: {
+    flexShrink: 1,
     fontFamily: fonts.bodyBold,
     fontSize: 12,
+    lineHeight: 17,
     color: colors.blue,
   },
 
   // Steppers
   steppersRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 8,
+    width: '100%',
+    minWidth: 0,
   },
+  
   stepperCol: {
     flex: 1,
+    minWidth: 0,
     alignItems: 'center',
     gap: 6,
   },

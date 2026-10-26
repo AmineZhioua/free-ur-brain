@@ -38,8 +38,24 @@ export function Button({ label, onPress, variant = 'primary', disabled = false, 
       ]}
     >
       <View style={styles.inner}>
-        <Text style={[type.button, { color: disabled ? colors.onDisabled : v.label }]}>{label}</Text>
-        {icon && <Icon name={icon} size={20} color={disabled ? colors.onDisabled : v.label} />}
+        <Text
+          style={[
+            type.button,
+            styles.label,
+            { color: disabled ? colors.onDisabled : v.label },
+          ]}
+        >
+          {label}
+        </Text>
+        {icon && (
+          <View style={styles.iconWrap}>
+            <Icon
+              name={icon}
+              size={20}
+              color={disabled ? colors.onDisabled : v.label}
+            />
+          </View>
+        )}
       </View>
     </Pressable>
   );
@@ -54,5 +70,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  inner: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  
+  inner: {
+    width: '100%',
+    minWidth: 0,
+    minHeight: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  label: {
+    flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
+    textAlign: 'center',
+    fontSize: 14
+  },
+  iconWrap: {
+    flexShrink: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
 });
