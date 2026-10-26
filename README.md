@@ -1,7 +1,6 @@
 <div align="center">
 
-<!-- Replace with your app icon: docs/screenshots/icon.png (512x512 recommended) -->
-<img src="docs/screenshots/icon.png" alt="FreeUrBrain app icon" width="120" />
+<img src="docs/icon.png" alt="FreeUrBrain app icon" width="120" />
 
 # FreeUrBrain
 
