@@ -4,8 +4,7 @@
 
 # FreeUrBrain
 
-**A promise to yourself, enforced by your phone.**
-Pick the apps that pull you away, choose how long to stay away, and start.
+A free, fully local, privacy-focused Android app. No accounts, no premium tier, no ads, no data collection. Pick the apps that pull you away, choose how long to stay away, and start.
 Until the timer ends, those apps (and their notifications) are blocked, and the commitment can't be cancelled from inside the app.
 
 ![Platform](https://img.shields.io/badge/platform-Android-3DDC84?logo=android&logoColor=white)
